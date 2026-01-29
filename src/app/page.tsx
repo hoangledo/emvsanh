@@ -1,4 +1,5 @@
 import { End } from "@/components/sections/end";
+import { Foods } from "@/components/sections/foods";
 import { Hoang } from "@/components/sections/hoang";
 import { Hero } from "@/components/sections/hero";
 import { Letter } from "@/components/sections/letter";
@@ -14,6 +15,7 @@ export default function Home() {
       <Moments />
       <Young />
       <Hoang />
+      <Foods />
       <Letter />
       <End />
     </main>
