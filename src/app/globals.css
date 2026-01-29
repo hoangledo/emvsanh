@@ -1,26 +1,126 @@
 @import "tailwindcss";
 
+/* Valentine palette – 10 HEX values */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --valentine-50: #fff0f3;
+  --valentine-100: #ffccd5;
+  --valentine-200: #ffb3c1;
+  --valentine-300: #ff8fa3;
+  --valentine-400: #ff758f;
+  --valentine-500: #ff4d6d;
+  --valentine-600: #c9184a;
+  --valentine-700: #a4133c;
+  --valentine-800: #800f2f;
+  --valentine-950: #590d22;
+}
+
+/* Light theme – pale pink bg, dark red text */
+.light {
+  --background: #fff0f3;
+  --foreground: #590d22;
+  --primary: #800f2f;
+  --primary-foreground: #fff0f3;
+  --muted: #ffccd5;
+  --muted-foreground: #800f2f;
+  --accent: #c9184a;
+  --accent-foreground: #fff0f3;
+  --card: #ffffff;
+  --card-foreground: #590d22;
+  --border: #ffb3c1;
+  --ring: #a4133c;
+  /* Glassmorphism – light mode */
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 181, 193, 0.5);
+}
+
+/* Dark theme – deep red bg, pale pink text */
+.dark {
+  --background: #590d22;
+  --foreground: #fff0f3;
+  --primary: #ff4d6d;
+  --primary-foreground: #590d22;
+  --muted: #800f2f;
+  --muted-foreground: #ffb3c1;
+  --accent: #ff758f;
+  --accent-foreground: #590d22;
+  --card: #800f2f;
+  --card-foreground: #fff0f3;
+  --border: #a4133c;
+  --ring: #ff4d6d;
+  /* Glassmorphism – dark mode */
+  --glass-bg: rgba(89, 13, 34, 0.5);
+  --glass-border: rgba(255, 77, 109, 0.25);
+}
+
+/* Default (no class) – follow system or fallback to light */
+:root:not(.light):not(.dark) {
+  --background: #fff0f3;
+  --foreground: #590d22;
+  --primary: #800f2f;
+  --primary-foreground: #fff0f3;
+  --muted: #ffccd5;
+  --muted-foreground: #800f2f;
+  --accent: #c9184a;
+  --accent-foreground: #fff0f3;
+  --card: #ffffff;
+  --card-foreground: #590d22;
+  --border: #ffb3c1;
+  --ring: #a4133c;
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 181, 193, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) {
+    --background: #590d22;
+    --foreground: #fff0f3;
+    --primary: #ff4d6d;
+    --primary-foreground: #590d22;
+    --muted: #800f2f;
+    --muted-foreground: #ffb3c1;
+    --accent: #ff758f;
+    --accent-foreground: #590d22;
+    --card: #800f2f;
+    --card-foreground: #fff0f3;
+    --border: #a4133c;
+    --ring: #ff4d6d;
+    --glass-bg: rgba(89, 13, 34, 0.5);
+    --glass-border: rgba(255, 77, 109, 0.25);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-glass: var(--glass-bg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Glassmorphism utility */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
