@@ -5,8 +5,15 @@ import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { hoangPhotos } from "@/data/hoang";
 import { Heart } from "@/components/icons";
 
+const PHOTOS_PER_PAGE_MOBILE = 8;
+
 export function Hoang() {
+  const [currentPage, setCurrentPage] = useState(1);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const totalPagesMobile = Math.ceil(hoangPhotos.length / PHOTOS_PER_PAGE_MOBILE);
+  const startMobile = (currentPage - 1) * PHOTOS_PER_PAGE_MOBILE;
+  const pagePhotosMobile = hoangPhotos.slice(startMobile, startMobile + PHOTOS_PER_PAGE_MOBILE);
 
   const closeModal = () => setActiveIndex(null);
 
@@ -62,7 +69,63 @@ export function Hoang() {
           </p>
         </div>
 
-        <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+        {/* Mobile: paginated grid */}
+        <div className="md:hidden">
+          <div className="grid grid-cols-2 gap-4">
+            {pagePhotosMobile.map((photo, index) => {
+              const globalIndex = startMobile + index;
+              return (
+                <button
+                  key={photo.src}
+                  type="button"
+                  className="group relative overflow-hidden rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  onClick={() => setActiveIndex(globalIndex)}
+                  style={{
+                    animation: `fadeIn 0.6s ease-out ${index * 0.05}s both`,
+                  }}
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
+                    <ImageWithFallback
+                      src={photo.src}
+                      alt={photo.alt}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/30 to-transparent px-3 pb-2 pt-8">
+                      <p className="text-xs font-medium text-accent-foreground/90">
+                        {photo.alt}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+            >
+              Previous page
+            </button>
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPagesMobile}
+            </span>
+            <button
+              type="button"
+              disabled={currentPage >= totalPagesMobile}
+              onClick={() => setCurrentPage((p) => Math.min(totalPagesMobile, p + 1))}
+              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+            >
+              Next page
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop: masonry (unchanged) */}
+        <div className="hidden columns-1 gap-4 md:columns-2 md:block lg:columns-3">
           {hoangPhotos.map((photo, index) => (
             <button
               key={photo.src}
