@@ -35,9 +35,6 @@ export function Navbar() {
   const isMobile = useIsMobile();
   const scrollPastThreshold = scrollY > 50;
 
-  const logoVariant =
-    !isMobile ? 1 : scrollY < 200 ? 1 : scrollY < 500 ? 2 : 3;
-
   return (
     <header
       className={cn(
@@ -54,7 +51,7 @@ export function Navbar() {
           )}
           aria-label="Em & Anh – Home"
         >
-          <Logo variant={logoVariant} />
+          <Logo variant={1} />
         </Link>
 
         <div className="hidden md:flex md:items-center md:gap-2">
