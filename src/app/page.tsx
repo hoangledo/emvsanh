@@ -1,5 +1,5 @@
 import { End } from "@/components/sections/end";
-import { Gallery } from "@/components/sections/gallery";
+import { Hoang } from "@/components/sections/hoang";
 import { Hero } from "@/components/sections/hero";
 import { Letter } from "@/components/sections/letter";
 import { Moments } from "@/components/sections/moments";
@@ -13,7 +13,7 @@ export default function Home() {
       <OurStory />
       <Moments />
       <Young />
-      <Gallery />
+      <Hoang />
       <Letter />
       <End />
     </main>
