@@ -1,6 +1,7 @@
 import { End } from "@/components/sections/end";
 import { Foods } from "@/components/sections/foods";
 import { Hoang } from "@/components/sections/hoang";
+import { Memes } from "@/components/sections/memes";
 import { Hero } from "@/components/sections/hero";
 import { Letter } from "@/components/sections/letter";
 import { Mai } from "@/components/sections/mai";
@@ -18,6 +19,7 @@ export default function Home() {
       <Mai />
       <Hoang />
       <Foods />
+      <Memes />
       <Letter />
       <End />
     </main>

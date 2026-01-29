@@ -13,6 +13,7 @@ const navLinks = [
   { href: "#story", label: "Story" },
   { href: "#moments", label: "Moments" },
   { href: "#gallery", label: "Gallery" },
+  { href: "#memes", label: "Memes" },
   { href: "#letter", label: "Letter" },
 ];
 
