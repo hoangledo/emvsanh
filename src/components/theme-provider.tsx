@@ -24,10 +24,13 @@ function getInitialTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => getInitialTheme());
+  // Start with a fixed theme on both server and client to avoid
+  // hydration mismatches, then sync to the real preference on mount.
+  const [theme, setThemeState] = useState<Theme>("light");
 
   useEffect(() => {
     const initial = getInitialTheme();
+    setThemeState(initial);
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(initial);
   }, []);
