@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Dancing_Script, Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { Navbar } from "@/components/navbar";
 import { HeartsBackground } from "@/components/hearts-background";
+import { CursorHearts } from "@/components/cursor-hearts";
 import { ScrollProvider } from "@/components/scroll-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
@@ -45,6 +46,7 @@ export default function RootLayout({
           <ScrollProvider>
             <div className="page-gradient relative min-h-screen overflow-hidden">
               <HeartsBackground />
+              <CursorHearts />
               <div className="relative z-10">
                 <Navbar />
                 {children}
