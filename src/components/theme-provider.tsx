@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 const STORAGE_KEY = "valentine-theme";
 
@@ -30,15 +24,12 @@ function getInitialTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<Theme>(() => getInitialTheme());
 
   useEffect(() => {
     const initial = getInitialTheme();
-    setThemeState(initial);
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(initial);
-    setMounted(true);
   }, []);
 
   const setTheme = useCallback((next: Theme) => {
@@ -60,19 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={value}>
-      {!mounted ? (
-        <div
-          className="min-h-screen"
-          style={{
-            background: "var(--background)",
-            color: "var(--foreground)",
-          }}
-        >
-          {children}
-        </div>
-      ) : (
-        children
-      )}
+      {children}
     </ThemeContext.Provider>
   );
 }
