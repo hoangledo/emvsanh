@@ -3,6 +3,7 @@ import { Foods } from "@/components/sections/foods";
 import { Hoang } from "@/components/sections/hoang";
 import { Hero } from "@/components/sections/hero";
 import { Letter } from "@/components/sections/letter";
+import { Mai } from "@/components/sections/mai";
 import { Moments } from "@/components/sections/moments";
 import { Young } from "@/components/sections/young";
 import { OurStory } from "@/components/sections/our-story";
@@ -14,6 +15,7 @@ export default function Home() {
       <OurStory />
       <Moments />
       <Young />
+      <Mai />
       <Hoang />
       <Foods />
       <Letter />
