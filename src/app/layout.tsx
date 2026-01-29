@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Dancing_Script, Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { Navbar } from "@/components/navbar";
+import { ScrollProvider } from "@/components/scroll-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -11,6 +12,16 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-serif",
+  subsets: ["latin"],
+});
+
+const dancingScript = Dancing_Script({
+  variable: "--font-cursive",
   subsets: ["latin"],
 });
 
@@ -27,11 +38,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${dancingScript.variable} antialiased`}
       >
         <ThemeProvider>
-          <Navbar />
-          {children}
+          <ScrollProvider>
+            <div className="page-gradient min-h-screen">
+              <Navbar />
+              {children}
+            </div>
+          </ScrollProvider>
         </ThemeProvider>
       </body>
     </html>

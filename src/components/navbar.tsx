@@ -1,46 +1,48 @@
 "use client";
 
+import { Heart, Menu, Moon, Sun, X } from "@/components/icons";
 import Link from "next/link";
+import { useScroll } from "@/components/scroll-provider";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const navLinks = [
   { href: "#home", label: "Home" },
-  { href: "#our-story", label: "Our Story" },
+  { href: "#story", label: "Story" },
   { href: "#moments", label: "Moments" },
   { href: "#gallery", label: "Gallery" },
   { href: "#letter", label: "Letter" },
-  { href: "#end", label: "End" },
 ];
 
 export function Navbar() {
   const { theme, toggleTheme } = useTheme();
+  const { scrollY } = useScroll();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const scrollPastThreshold = scrollY > 50;
 
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 glass border-b border-[var(--glass-border)]",
-        "transition-colors duration-200"
+        "fixed top-0 left-0 right-0 z-50 border-b border-[var(--glass-border)] transition-all duration-300",
+        scrollPastThreshold ? "glass shadow-lg" : "glass-subtle"
       )}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        {/* Logo / name */}
         <Link
           href="#home"
-          className="text-lg font-semibold text-foreground hover:text-accent transition-colors"
+          className="flex items-center gap-2 text-foreground hover:text-accent transition-colors"
         >
-          Us
+          <Heart className="h-6 w-6 text-accent" size={24} fill="currentColor" />
+          <span className="font-serif text-xl">Our Story</span>
         </Link>
 
-        {/* Desktop links */}
-        <div className="hidden md:flex md:items-center md:gap-1">
+        <div className="hidden md:flex md:items-center md:gap-2">
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className="rounded-full px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
+              className="rounded-full px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/50 hover:text-accent transition-all duration-300 hover:scale-105"
               onClick={() => setMobileOpen(false)}
             >
               {label}
@@ -53,14 +55,13 @@ export function Navbar() {
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? (
-              <SunIcon className="h-5 w-5" />
+              <Sun className="h-5 w-5" size={20} />
             ) : (
-              <MoonIcon className="h-5 w-5" />
+              <Moon className="h-5 w-5" size={20} />
             )}
           </button>
         </div>
 
-        {/* Mobile: hamburger + theme toggle */}
         <div className="flex items-center gap-2 md:hidden">
           <button
             type="button"
@@ -69,9 +70,9 @@ export function Navbar() {
             aria-label="Toggle theme"
           >
             {theme === "dark" ? (
-              <SunIcon className="h-5 w-5" />
+              <Sun className="h-5 w-5" size={20} />
             ) : (
-              <MoonIcon className="h-5 w-5" />
+              <Moon className="h-5 w-5" size={20} />
             )}
           </button>
           <button
@@ -81,16 +82,11 @@ export function Navbar() {
             aria-label="Open menu"
             aria-expanded={mobileOpen}
           >
-            {mobileOpen ? (
-              <XIcon className="h-6 w-6" />
-            ) : (
-              <MenuIcon className="h-6 w-6" />
-            )}
+            {mobileOpen ? <X className="h-6 w-6" size={24} /> : <Menu className="h-6 w-6" size={24} />}
           </button>
         </div>
       </nav>
 
-      {/* Mobile menu */}
       {mobileOpen && (
         <div className="glass border-t border-[var(--glass-border)] md:hidden">
           <div className="flex flex-col gap-1 px-4 py-3">
@@ -108,92 +104,5 @@ export function Navbar() {
         </div>
       )}
     </header>
-  );
-}
-
-function MenuIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M4 5h16" />
-      <path d="M4 12h16" />
-      <path d="M4 19h16" />
-    </svg>
-  );
-}
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
-
-function SunIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2" />
-      <path d="M12 20v2" />
-      <path d="m4.93 4.93 1.41 1.41" />
-      <path d="m17.66 17.66 1.41 1.41" />
-      <path d="M2 12h2" />
-      <path d="M20 12h2" />
-      <path d="m6.34 17.66-1.41 1.41" />
-      <path d="m19.07 4.93-1.41 1.41" />
-    </svg>
-  );
-}
-
-function MoonIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-    </svg>
   );
 }
