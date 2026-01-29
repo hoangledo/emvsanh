@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart, Infinity } from "@/components/icons";
+import { Logo } from "@/components/logo";
 
 export function End() {
   return (
@@ -49,8 +50,11 @@ export function End() {
           </p>
         </div>
 
-        <div className="mt-16 border-t border-border pt-8 opacity-30">
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-16 border-t border-border pt-8">
+          <div className="mb-4 flex justify-center">
+            <Logo variant={2} />
+          </div>
+          <p className="text-sm text-muted-foreground opacity-80">
             Made with ♡ on Valentine&apos;s Day 2026
           </p>
         </div>

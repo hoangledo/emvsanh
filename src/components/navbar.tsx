@@ -1,11 +1,12 @@
 "use client";
 
-import { Heart, Menu, Moon, Sun, X } from "@/components/icons";
+import { Logo } from "@/components/logo";
+import { Menu, Moon, Sun, X } from "@/components/icons";
 import Link from "next/link";
 import { useScroll } from "@/components/scroll-provider";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const navLinks = [
   { href: "#home", label: "Home" },
@@ -15,11 +16,27 @@ const navLinks = [
   { href: "#letter", label: "Letter" },
 ];
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(true);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsMobile(!mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
+
 export function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { scrollY } = useScroll();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isMobile = useIsMobile();
   const scrollPastThreshold = scrollY > 50;
+
+  const logoVariant =
+    !isMobile ? 1 : scrollY < 200 ? 1 : scrollY < 500 ? 2 : 3;
 
   return (
     <header
@@ -31,10 +48,13 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link
           href="#home"
-          className="flex items-center gap-2 text-foreground hover:text-accent transition-colors"
+          className={cn(
+            "flex items-center text-foreground hover:text-accent transition-colors duration-300",
+            isMobile && "min-h-[2.5rem] items-center"
+          )}
+          aria-label="Em & Anh – Home"
         >
-          <Heart className="h-6 w-6 text-accent" size={24} fill="currentColor" />
-          <span className="font-serif text-xl">Our Story</span>
+          <Logo variant={logoVariant} />
         </Link>
 
         <div className="hidden md:flex md:items-center md:gap-2">
