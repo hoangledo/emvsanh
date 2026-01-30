@@ -1,21 +1,24 @@
 "use client";
 
 import { Logo } from "@/components/logo";
-import { Menu, Moon, Sun, X } from "@/components/icons";
+import { Menu, Moon, Settings, Sun, X } from "@/components/icons";
 import Link from "next/link";
 import { useScroll } from "@/components/scroll-provider";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 
 const navLinks = [
   { href: "#home", label: "Home" },
   { href: "#story", label: "Story" },
-  { href: "#her-and-i", label: "Her and I" },
-  { href: "#gallery", label: "Gallery" },
-  { href: "#memes", label: "Memes" },
+  { href: "#her-and-i", label: "Us" },
+  { href: "#young", label: "Young" },
+  { href: "#mai", label: "Her" },
+  { href: "#hoang", label: "Together" },
+  { href: "#foods", label: "Foods" },
+  { href: "#memes", label: "Fun" },
   { href: "#letter", label: "Letter" },
 ];
 
@@ -34,8 +37,11 @@ function useIsMobile() {
 export function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { scrollY } = useScroll();
-  const { logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsDesktopRef = useRef<HTMLDivElement>(null);
+  const settingsMobileRef = useRef<HTMLDivElement>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -46,6 +52,18 @@ export function Navbar() {
   const [changeSuccess, setChangeSuccess] = useState(false);
   const isMobile = useIsMobile();
   const scrollPastThreshold = scrollY > 50;
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const inDesktop = settingsDesktopRef.current?.contains(target);
+      const inMobile = settingsMobileRef.current?.contains(target);
+      if (!inDesktop && !inMobile) setSettingsOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [settingsOpen]);
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
@@ -120,51 +138,129 @@ export function Navbar() {
               {label}
             </Link>
           ))}
-          <button
-            type="button"
-            onClick={() => {
-              setChangePasswordOpen(true);
-              setChangeError("");
-              setChangeSuccess(false);
-            }}
-            className="ml-2 rounded-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
-          >
-            Change password
-          </button>
-          <button
-            type="button"
-            onClick={logout}
-            className="rounded-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
-          >
-            Log out
-          </button>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="rounded-full p-2 text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
-            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" size={20} />
-            ) : (
-              <Moon className="h-5 w-5" size={20} />
+          <div className="relative ml-2" ref={settingsDesktopRef}>
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((o) => !o)}
+              className="rounded-full p-2 text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
+              aria-label="Settings"
+              aria-expanded={settingsOpen}
+            >
+              <Settings className="h-5 w-5" size={20} />
+            </button>
+            {settingsOpen && (
+              <div
+                className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] py-1 shadow-lg backdrop-blur-md"
+                role="menu"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleTheme();
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted/50 hover:text-accent"
+                  role="menuitem"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-4 w-4" size={16} />
+                  ) : (
+                    <Moon className="h-4 w-4" size={16} />
+                  )}
+                  <span>Color mode</span>
+                </button>
+                {isAuthenticated && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        setChangePasswordOpen(true);
+                        setChangeError("");
+                        setChangeSuccess(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted/50 hover:text-accent"
+                      role="menuitem"
+                    >
+                      Change password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        logout();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted/50 hover:text-accent"
+                      role="menuitem"
+                    >
+                      Log out
+                    </button>
+                  </>
+                )}
+              </div>
             )}
-          </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="rounded-full p-2 text-foreground hover:bg-muted/50"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" size={20} />
-            ) : (
-              <Moon className="h-5 w-5" size={20} />
+          <div className="relative" ref={settingsMobileRef}>
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((o) => !o)}
+              className="rounded-full p-2 text-foreground hover:bg-muted/50"
+              aria-label="Settings"
+              aria-expanded={settingsOpen}
+            >
+              <Settings className="h-5 w-5" size={20} />
+            </button>
+            {settingsOpen && (
+              <div
+                className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] py-1 shadow-lg backdrop-blur-md"
+                role="menu"
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleTheme()}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted/50 hover:text-accent"
+                  role="menuitem"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-4 w-4" size={16} />
+                  ) : (
+                    <Moon className="h-4 w-4" size={16} />
+                  )}
+                  <span>Color mode</span>
+                </button>
+                {isAuthenticated && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        setChangePasswordOpen(true);
+                        setChangeError("");
+                        setChangeSuccess(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted/50 hover:text-accent"
+                      role="menuitem"
+                    >
+                      Change password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        logout();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted/50 hover:text-accent"
+                      role="menuitem"
+                    >
+                      Log out
+                    </button>
+                  </>
+                )}
+              </div>
             )}
-          </button>
+          </div>
           <button
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
@@ -190,28 +286,6 @@ export function Navbar() {
                 {label}
               </Link>
             ))}
-            <button
-              type="button"
-              onClick={() => {
-                setMobileOpen(false);
-                setChangePasswordOpen(true);
-                setChangeError("");
-                setChangeSuccess(false);
-              }}
-              className="rounded-lg px-4 py-3 text-left text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
-            >
-              Change password
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileOpen(false);
-                logout();
-              }}
-              className="rounded-lg px-4 py-3 text-left text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
-            >
-              Log out
-            </button>
           </div>
         </div>
       )}

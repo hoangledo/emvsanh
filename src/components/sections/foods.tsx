@@ -177,7 +177,7 @@ export function Foods() {
             className="font-serif text-foreground transition-colors duration-700"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
-            Food we made or eat together
+            Fooooooods
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             A little carousel of our shared meals and moments at the table

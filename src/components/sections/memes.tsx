@@ -174,7 +174,7 @@ export function Memes() {
             className="font-serif text-foreground transition-colors duration-700"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
-            Funny, cute & embarrassing moments
+            Haha momentsss
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             The moments we&apos;ll never forget (and maybe wish we could)

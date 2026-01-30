@@ -158,7 +158,7 @@ export function Young() {
             className="font-serif text-foreground transition-colors duration-700"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
-            When We Were Younger
+            Younger Version of Us
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             A little album of our younger days, one memory at a time
