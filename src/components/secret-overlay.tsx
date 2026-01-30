@@ -17,6 +17,19 @@ const BOTTOM_THRESHOLD_PX = 40;
 const SCROLL_UP_GESTURE_PX = 100;
 const MIN_WHEEL_DELTA = 80;
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, {
@@ -277,6 +290,7 @@ export function SecretOverlay() {
   const [addPhotoError, setAddPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const overlayScrollRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const touchStartY = useRef(0);
   const didTriggerExitTouch = useRef(false);
 
@@ -337,7 +351,7 @@ export function SecretOverlay() {
   }
 
   useEffect(() => {
-    if (!secretModeActive) return;
+    if (!secretModeActive || !isMobile) return;
     const el = overlayScrollRef.current;
     if (!el) return;
 
@@ -421,7 +435,9 @@ export function SecretOverlay() {
             </div>
           </header>
           <p className="shrink-0 px-4 py-1 text-xs text-muted-foreground sm:px-6">
-            Scroll to bottom, then scroll up to exit · Cmd+S / Ctrl+S to exit
+            {isMobile
+              ? "Scroll to bottom, then scroll up to exit"
+              : "Cmd+S (Mac) or Ctrl+S (Windows) to exit"}
           </p>
           <div
             ref={overlayScrollRef}

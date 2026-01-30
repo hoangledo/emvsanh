@@ -14,6 +14,19 @@ const BOTTOM_THRESHOLD_PX = 40;
 const SCROLL_UP_GESTURE_PX = 100;
 const MIN_WHEEL_DELTA = 80;
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
+
 function isWindowAtBottom() {
   if (typeof window === "undefined") return false;
   const { scrollY, innerHeight } = window;
@@ -31,6 +44,7 @@ const SecretModeContext = createContext<SecretModeContextValue | null>(null);
 
 export function SecretModeProvider({ children }: { children: React.ReactNode }) {
   const [secretModeActive, setSecretModeActiveState] = useState(false);
+  const isMobile = useIsMobile();
   const touchStartY = useRef(0);
   const didTriggerFromTouch = useRef(false);
 
@@ -71,7 +85,7 @@ export function SecretModeProvider({ children }: { children: React.ReactNode }) 
   }, [toggleSecretMode]);
 
   useEffect(() => {
-    if (secretModeActive) return;
+    if (!isMobile || secretModeActive) return;
 
     const handleWheel = (e: WheelEvent) => {
       if (!isWindowAtBottom()) return;
@@ -105,7 +119,7 @@ export function SecretModeProvider({ children }: { children: React.ReactNode }) 
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
     };
-  }, [secretModeActive, toggleSecretMode]);
+  }, [isMobile, secretModeActive, toggleSecretMode]);
 
   const value: SecretModeContextValue = {
     secretModeActive,
