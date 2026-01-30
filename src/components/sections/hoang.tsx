@@ -201,7 +201,7 @@ export function Hoang() {
                   }}
                 >
                   {canEdit && (
-                    <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                       <button
                         type="button"
                         onClick={(e) => {
@@ -299,7 +299,7 @@ export function Hoang() {
               }}
             >
               {canEdit && (
-                <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                   <button
                     type="button"
                     onClick={(e) => {

@@ -19,6 +19,12 @@ export function ScrollProvider({ children }: { children: React.ReactNode }) {
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     handleScroll();
     window.addEventListener("scroll", handleScroll);
