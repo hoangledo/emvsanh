@@ -27,117 +27,108 @@ import { cn } from "@/lib/utils";
 
 const MAX_INTRO_PHOTOS = 3;
 
+const FAN_LEFT = "15%";
+const FAN_CENTER = "50%";
+const FAN_RIGHT = "85%";
+const FAN_ROTATIONS = ["-rotate-[12deg]", "rotate-0", "rotate-[12deg]"];
+const FAN_Z = ["z-10", "z-20", "z-10"];
+
 function IntroPhotoRow({
   photos,
   name,
-  personSlug,
   canEdit,
-  canAddPhoto,
-  onAdd,
   onRemove,
   onRefetch,
 }: {
   photos: { id?: string; url: string }[];
   name: string;
-  personSlug: HerAndIPersonSlug;
   canEdit: boolean;
-  canAddPhoto: boolean;
-  onAdd: (formData: FormData) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   onRefetch: () => void;
 }) {
-  const [adding, setAdding] = useState(false);
-
-  async function handleAdd(formData: FormData) {
-    await onAdd(formData);
-    setAdding(false);
-    onRefetch();
-  }
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const displayPhotos = photos.slice(0, MAX_INTRO_PHOTOS);
+  const positions = [FAN_LEFT, FAN_CENTER, FAN_RIGHT];
+  const getPositionIndex = (i: number) =>
+    displayPhotos.length === 1
+      ? 1
+      : displayPhotos.length === 2
+        ? [0, 2][i]
+        : i;
 
   return (
-    <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
-      {photos.slice(0, MAX_INTRO_PHOTOS).map((photo, i) => (
-        <div
-          key={photo.id ?? `fallback-${i}`}
-          className={cn(
-            "relative shrink-0 transition-all duration-300 ease-out",
-            "hover:z-20 hover:scale-110 hover:-translate-y-2 hover:drop-shadow-2xl",
-            "rounded-2xl overflow-hidden border border-border"
-          )}
-        >
-          <div className="h-[200px] w-[140px] sm:h-[240px] sm:w-[168px]">
-            <ImageWithFallback
-              src={photo.url}
-              alt={`${name} ${i + 1}`}
-              className="h-full w-full object-cover transition-transform duration-300"
+    <>
+      <div className="relative mx-auto h-[380px] w-full max-w-[520px] sm:h-[420px]">
+        {displayPhotos.map((photo, i) => {
+          const posIdx = getPositionIndex(i);
+          return (
+          <div
+            key={photo.id ?? `photo-${i}`}
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300 ease-out",
+              "hover:z-30 hover:scale-110 hover:-translate-y-3 hover:drop-shadow-2xl",
+              FAN_ROTATIONS[posIdx],
+              FAN_Z[posIdx]
+            )}
+            style={{
+              left: positions[posIdx],
+              marginLeft: posIdx === 1 ? "-114px" : "-100px",
+            }}
+          >
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setLightboxUrl(photo.url)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setLightboxUrl(photo.url);
+                }
+              }}
+              className="h-[280px] w-[200px] overflow-hidden rounded-2xl border border-border shadow-lg sm:h-[320px] sm:w-[228px]"
+              aria-label={`View ${name} photo ${i + 1}`}
+            >
+              <ImageWithFallback
+                src={photo.url}
+                alt={`${name} ${i + 1}`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            {canEdit && photo.id && (
+              <button
+                type="button"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  await onRemove(photo.id!);
+                  onRefetch();
+                }}
+                className="absolute right-2 top-2 z-40 rounded-full bg-black/60 p-2 text-white shadow hover:bg-red-600"
+                aria-label="Remove photo"
+              >
+                <Trash2 className="h-4 w-4" size={16} />
+              </button>
+            )}
+          </div>
+          );
+        })}
+      </div>
+
+      <Modal
+        open={!!lightboxUrl}
+        onClose={() => setLightboxUrl(null)}
+        title="View photo"
+      >
+        {lightboxUrl && (
+          <div className="relative">
+            <img
+              src={lightboxUrl}
+              alt="Enlarged"
+              className="max-h-[70vh] w-full rounded-lg object-contain"
             />
           </div>
-          {canEdit && photo.id && (
-            <button
-              type="button"
-              onClick={async () => {
-                await onRemove(photo.id!);
-                onRefetch();
-              }}
-              className="absolute right-2 top-2 z-30 rounded-full bg-black/60 p-2 text-white shadow hover:bg-red-600"
-              aria-label="Remove photo"
-            >
-              <Trash2 className="h-4 w-4" size={16} />
-            </button>
-          )}
-        </div>
-      ))}
-      {canEdit && canAddPhoto && (
-        <div className="flex shrink-0 items-center justify-center">
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="flex h-[200px] w-[140px] sm:h-[240px] sm:w-[168px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent"
-            aria-label="Add photo"
-          >
-            <Plus className="mb-2 h-8 w-8" size={32} />
-            <span className="text-sm">Add</span>
-          </button>
-        </div>
-      )}
-      <Modal
-        open={adding}
-        onClose={() => setAdding(false)}
-        title="Add intro photo"
-      >
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await handleAdd(new FormData(e.currentTarget));
-          }}
-        >
-          <input
-            type="file"
-            name="file"
-            accept="image/*"
-            required
-            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
-          />
-          <input type="hidden" name="person" value={personSlug} />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setAdding(false)}
-              className="rounded-lg border border-border px-4 py-2 text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
-            >
-              Add
-            </button>
-          </div>
-        </form>
+        )}
       </Modal>
-    </div>
+    </>
   );
 }
 
@@ -199,10 +190,7 @@ function HerAndIIntroCard({
   const [editIntroOpen, setEditIntroOpen] = useState(false);
   const [editIntroValue, setEditIntroValue] = useState(intro);
 
-  const displayPhotos =
-    photos.length > 0
-      ? photos.map((p) => ({ id: p.id, url: p.url }))
-      : staticPerson.fallbackPhotos.map((url) => ({ url }));
+  const displayPhotos = photos.map((p) => ({ id: p.id, url: p.url }));
   const displayIntro = intro || "Add a short introduction here.";
 
   async function handleSaveIntro() {
@@ -232,21 +220,39 @@ function HerAndIIntroCard({
     await fetch(`/api/her-and-i/photos/${id}`, { method: "DELETE" });
   }
 
+  const [adding, setAdding] = useState(false);
+  const canAddPhoto = photos.length < MAX_INTRO_PHOTOS;
+
+  async function handleAdd(formData: FormData) {
+    await handleAddPhoto(formData);
+    setAdding(false);
+    onRefetch();
+  }
+
   return (
     <div className="flex flex-col items-center text-center">
       <IntroPhotoRow
         photos={displayPhotos}
         name={staticPerson.name}
-        personSlug={staticPerson.slug}
         canEdit={canEdit}
-        canAddPhoto={photos.length < MAX_INTRO_PHOTOS}
-        onAdd={handleAddPhoto}
         onRemove={handleRemovePhoto}
         onRefetch={onRefetch}
       />
-      <h3 className="mt-8 font-serif text-2xl text-foreground transition-colors duration-700 sm:text-3xl">
-        {staticPerson.name}
-      </h3>
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <h3 className="font-serif text-2xl text-foreground transition-colors duration-700 sm:text-3xl">
+          {staticPerson.name}
+        </h3>
+        {canEdit && canAddPhoto && (
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent"
+            aria-label="Add photo"
+          >
+            <Plus className="h-5 w-5" size={20} />
+          </button>
+        )}
+      </div>
       <div className="relative mt-4 max-w-md">
         <p className="text-muted-foreground leading-relaxed">
           {displayIntro}
@@ -269,6 +275,44 @@ function HerAndIIntroCard({
       <div className="mt-6">
         <SocialLinks social={staticPerson.social} />
       </div>
+
+      <Modal
+        open={adding}
+        onClose={() => setAdding(false)}
+        title="Add intro photo"
+      >
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await handleAdd(new FormData(e.currentTarget));
+          }}
+        >
+          <input
+            type="file"
+            name="file"
+            accept="image/*"
+            required
+            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
+          />
+          <input type="hidden" name="person" value={staticPerson.slug} />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setAdding(false)}
+              className="rounded-lg border border-border px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
+            >
+              Add
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       <Modal
         open={editIntroOpen}
