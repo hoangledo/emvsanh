@@ -6,7 +6,6 @@ import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { useMoments } from "@/hooks/use-moments";
 import { useAuth } from "@/contexts/auth-context";
 import { Modal } from "@/components/ui/modal";
-import { moments as staticMoments } from "@/data/moments";
 
 type DisplayMoment = {
   id: string;
@@ -23,23 +22,13 @@ export function Moments() {
   const [editOpen, setEditOpen] = useState<DisplayMoment | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const fallback: DisplayMoment[] = staticMoments.map((m, i) => ({
-    id: `fallback-${i}`,
-    title: m.title,
-    date: m.date,
-    description: m.description,
-    url: m.image,
+  const displayItems: DisplayMoment[] = items.map((r) => ({
+    id: r.id,
+    title: r.title,
+    date: r.date,
+    description: r.description,
+    url: r.url,
   }));
-  const displayItems: DisplayMoment[] =
-    items.length > 0
-      ? items.map((r) => ({
-          id: r.id,
-          title: r.title,
-          date: r.date,
-          description: r.description,
-          url: r.url,
-        }))
-      : fallback;
   const canEdit = isAuthenticated;
 
   async function handleAdd(formData: FormData) {
@@ -122,6 +111,13 @@ export function Moments() {
         </div>
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {displayItems.length === 0 ? (
+            <div className="col-span-full flex min-h-[60vh] items-center justify-center py-12">
+              <p className="text-center text-muted-foreground">
+                No moments yet. Add one above when logged in.
+              </p>
+            </div>
+          ) : null}
           {displayItems.map((moment, index) => (
             <div
               key={moment.id}
@@ -261,7 +257,7 @@ export function Moments() {
         </Modal>
       )}
 
-      {deleteId && !deleteId.startsWith("fallback") && (
+      {deleteId && (
         <Modal
           open={!!deleteId}
           onClose={() => setDeleteId(null)}

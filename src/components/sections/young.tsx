@@ -6,7 +6,6 @@ import { useAlbumImages } from "@/hooks/use-album-images";
 import { useAuth } from "@/contexts/auth-context";
 import { ImageIcon, PenLine, Plus, Trash2 } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
-import { youngPhotos } from "@/data/young";
 
 type DisplayItem = { id: string; url: string; alt: string; note: string | null };
 
@@ -20,16 +19,12 @@ export function Young() {
   const [editOpen, setEditOpen] = useState<DisplayItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const fallback: DisplayItem[] = youngPhotos.map((p, i) => ({
-    id: `fallback-${i}`,
-    url: p.src,
-    alt: p.alt,
-    note: p.note,
+  const displayItems: DisplayItem[] = items.map((r) => ({
+    id: r.id,
+    url: r.url,
+    alt: r.alt,
+    note: r.note,
   }));
-  const displayItems: DisplayItem[] =
-    items.length > 0
-      ? items.map((r) => ({ id: r.id, url: r.url, alt: r.alt, note: r.note }))
-      : fallback;
   const canEdit = isAuthenticated;
 
   useEffect(() => {
@@ -100,7 +95,7 @@ export function Young() {
     }
   }
 
-  if (loading && items.length === 0) {
+  if (loading) {
     return (
       <section id="young" className="relative min-h-screen px-6 py-24">
         <div className="mx-auto max-w-7xl text-center text-muted-foreground">
@@ -141,6 +136,11 @@ export function Young() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
+          {displayItems.length === 0 ? (
+            <p className="col-span-full py-12 text-center text-muted-foreground">
+              No images yet. Add one above when logged in.
+            </p>
+          ) : null}
           {displayItems.map((photo, index) => (
             <div
               key={photo.id}
@@ -328,7 +328,7 @@ export function Young() {
         </Modal>
       )}
 
-      {deleteId && !deleteId.startsWith("fallback") && (
+      {deleteId && (
         <Modal
           open={!!deleteId}
           onClose={() => setDeleteId(null)}

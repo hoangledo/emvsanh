@@ -6,7 +6,6 @@ import { useAlbumImages } from "@/hooks/use-album-images";
 import { useAuth } from "@/contexts/auth-context";
 import { Heart, PenLine, Plus, Trash2 } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
-import { hoangPhotos } from "@/data/hoang";
 
 const PHOTOS_PER_PAGE_MOBILE = 8;
 
@@ -21,16 +20,12 @@ export function Hoang() {
   const [editOpen, setEditOpen] = useState<DisplayItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const fallback: DisplayItem[] = hoangPhotos.map((p, i) => ({
-    id: `fallback-${i}`,
-    url: p.src,
-    alt: p.alt,
-    note: p.note ?? null,
+  const displayItems: DisplayItem[] = items.map((r) => ({
+    id: r.id,
+    url: r.url,
+    alt: r.alt,
+    note: r.note,
   }));
-  const displayItems: DisplayItem[] =
-    items.length > 0
-      ? items.map((r) => ({ id: r.id, url: r.url, alt: r.alt, note: r.note }))
-      : fallback;
   const canEdit = isAuthenticated;
 
   const totalPagesMobile = Math.ceil(
@@ -102,7 +97,7 @@ export function Hoang() {
     }
   }
 
-  if (loading && items.length === 0) {
+  if (loading) {
     return (
       <section id="hoang" className="relative min-h-screen px-6 py-24">
         <div className="mx-auto max-w-7xl text-center text-muted-foreground">
@@ -148,6 +143,13 @@ export function Hoang() {
 
         <div className="md:hidden">
           <div className="grid grid-cols-2 gap-4">
+            {displayItems.length === 0 ? (
+              <div className="col-span-full flex min-h-[60vh] items-center justify-center py-12">
+                <p className="text-center text-muted-foreground">
+                  No images yet. Add one above when logged in.
+                </p>
+              </div>
+            ) : null}
             {pagePhotosMobile.map((photo, index) => {
               const globalIndex = startMobile + index;
               return (
@@ -212,32 +214,42 @@ export function Hoang() {
               );
             })}
           </div>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <button
-              type="button"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-            >
-              Previous page
-            </button>
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPagesMobile}
-            </span>
-            <button
-              type="button"
-              disabled={currentPage >= totalPagesMobile}
-              onClick={() =>
-                setCurrentPage((p) => Math.min(totalPagesMobile, p + 1))
-              }
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-            >
-              Next page
-            </button>
-          </div>
+          {displayItems.length > 0 && (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <button
+                type="button"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+              >
+                Previous page
+              </button>
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPagesMobile}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage >= totalPagesMobile}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPagesMobile, p + 1))
+                }
+                className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+              >
+                Next page
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="hidden columns-1 gap-4 md:columns-2 md:block lg:columns-3">
+        <div className="hidden md:block">
+          {displayItems.length === 0 ? (
+            <div className="flex min-h-[60vh] items-center justify-center py-12">
+              <p className="text-center text-muted-foreground">
+                No images yet. Add one above when logged in.
+              </p>
+            </div>
+          ) : (
+            <div className="columns-1 gap-4 md:columns-2 lg:columns-3">
           {displayItems.map((photo, index) => (
             <div
               key={photo.id}
@@ -298,6 +310,8 @@ export function Hoang() {
               </button>
             </div>
           ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -409,7 +423,7 @@ export function Hoang() {
         </form>
       </Modal>
 
-      {editOpen && !editOpen.id.startsWith("fallback") && (
+      {editOpen && (
         <Modal
           open={!!editOpen}
           onClose={() => setEditOpen(null)}
@@ -424,7 +438,7 @@ export function Hoang() {
         </Modal>
       )}
 
-      {deleteId && !deleteId.startsWith("fallback") && (
+      {deleteId && (
         <Modal
           open={!!deleteId}
           onClose={() => setDeleteId(null)}

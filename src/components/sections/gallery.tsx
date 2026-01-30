@@ -6,7 +6,6 @@ import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { useAlbumImages } from "@/hooks/use-album-images";
 import { useAuth } from "@/contexts/auth-context";
 import { Modal } from "@/components/ui/modal";
-import { galleryImages } from "@/data/gallery";
 
 type DisplayItem = { id: string; url: string; alt: string };
 
@@ -17,15 +16,11 @@ export function Gallery() {
   const [editOpen, setEditOpen] = useState<DisplayItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const fallback: DisplayItem[] = galleryImages.map((img, i) => ({
-    id: `fallback-${i}`,
-    url: img.url,
-    alt: img.alt,
+  const displayItems: DisplayItem[] = items.map((r) => ({
+    id: r.id,
+    url: r.url,
+    alt: r.alt,
   }));
-  const displayItems: DisplayItem[] =
-    items.length > 0
-      ? items.map((r) => ({ id: r.id, url: r.url, alt: r.alt }))
-      : fallback;
   const canEdit = isAuthenticated;
 
   async function handleAdd(formData: FormData) {
@@ -63,7 +58,7 @@ export function Gallery() {
     }
   }
 
-  if (loading && items.length === 0) {
+  if (loading) {
     return (
       <section id="gallery" className="relative min-h-screen px-6 py-24">
         <div className="mx-auto max-w-7xl text-center text-muted-foreground">
@@ -104,6 +99,11 @@ export function Gallery() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
+          {displayItems.length === 0 ? (
+            <p className="col-span-full py-12 text-center text-muted-foreground">
+              No images yet. Add one above when logged in.
+            </p>
+          ) : null}
           {displayItems.map((image, index) => (
             <div
               key={image.id}
@@ -191,7 +191,7 @@ export function Gallery() {
         </form>
       </Modal>
 
-      {editOpen && !editOpen.id.startsWith("fallback") && (
+      {editOpen && (
         <Modal
           open={!!editOpen}
           onClose={() => setEditOpen(null)}
@@ -205,7 +205,7 @@ export function Gallery() {
         </Modal>
       )}
 
-      {deleteId && !deleteId.startsWith("fallback") && (
+      {deleteId && (
         <Modal
           open={!!deleteId}
           onClose={() => setDeleteId(null)}

@@ -6,7 +6,6 @@ import { useAlbumImages } from "@/hooks/use-album-images";
 import { useAuth } from "@/contexts/auth-context";
 import { Heart, PenLine, Plus, Trash2 } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
-import { foodsPhotos } from "@/data/foods";
 
 type DisplayItem = { id: string; url: string; alt: string; note: string | null };
 
@@ -20,16 +19,12 @@ export function Foods() {
   const [editOpen, setEditOpen] = useState<DisplayItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const fallback: DisplayItem[] = foodsPhotos.map((p, i) => ({
-    id: `fallback-${i}`,
-    url: p.src,
-    alt: p.alt,
-    note: p.note,
+  const displayItems: DisplayItem[] = items.map((r) => ({
+    id: r.id,
+    url: r.url,
+    alt: r.alt,
+    note: r.note,
   }));
-  const displayItems: DisplayItem[] =
-    items.length > 0
-      ? items.map((r) => ({ id: r.id, url: r.url, alt: r.alt, note: r.note }))
-      : fallback;
   const canEdit = isAuthenticated;
 
   const goPrev = () => {
@@ -120,7 +115,7 @@ export function Foods() {
     }
   }
 
-  if (loading && items.length === 0) {
+  if (loading) {
     return (
       <section id="foods" className="relative min-h-screen px-6 py-24">
         <div className="mx-auto max-w-7xl text-center text-muted-foreground">
@@ -169,6 +164,11 @@ export function Foods() {
           className="flex gap-6 overflow-x-auto overflow-y-hidden pb-4 scroll-smooth snap-x snap-mandatory [-webkit-overflow-scrolling:touch]"
           aria-label="Food photos carousel"
         >
+          {displayItems.length === 0 ? (
+            <p className="w-full py-12 text-center text-muted-foreground">
+              No images yet. Add one above when logged in.
+            </p>
+          ) : null}
           {displayItems.map((photo, index) => (
             <div
               key={photo.id}
@@ -229,27 +229,29 @@ export function Foods() {
           ))}
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-4">
-          <button
-            type="button"
-            onClick={goPrev}
-            className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-            aria-label="Previous food photo"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-muted-foreground">
-            {currentIndex + 1} / {displayItems.length}
-          </span>
-          <button
-            type="button"
-            onClick={goNext}
-            className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-            aria-label="Next food photo"
-          >
-            Next
-          </button>
-        </div>
+        {displayItems.length > 0 && (
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={goPrev}
+              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              aria-label="Previous food photo"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-muted-foreground">
+              {currentIndex + 1} / {displayItems.length}
+            </span>
+            <button
+              type="button"
+              onClick={goNext}
+              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              aria-label="Next food photo"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add image">
@@ -299,7 +301,7 @@ export function Foods() {
         </form>
       </Modal>
 
-      {editOpen && editOpen.id.startsWith("fallback") === false && (
+      {editOpen && (
         <Modal
           open={!!editOpen}
           onClose={() => setEditOpen(null)}
@@ -316,7 +318,7 @@ export function Foods() {
         </Modal>
       )}
 
-      {deleteId && deleteId.startsWith("fallback") === false && (
+      {deleteId && (
         <Modal
           open={!!deleteId}
           onClose={() => setDeleteId(null)}
