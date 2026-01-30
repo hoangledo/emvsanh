@@ -125,5 +125,25 @@ export const hoangPhotos: HoangPhoto[] = [
     alt: "Hoang memory 24",
     note: "One more little snapshot of a love I’m endlessly grateful for.",
   },
+  {
+    src: "/hoang/hoang_25.jpg",
+    alt: "Hoang memory 25",
+    note: "One more little snapshot of a love I’m endlessly grateful for.",
+  },
+  {
+    src: "/hoang/hoang_26.jpeg",
+    alt: "Hoang memory 26",
+    note: "One more little snapshot of a love I’m endlessly grateful for.",
+  },
+  {
+    src: "/hoang/hoang_27.jpg",
+    alt: "Hoang memory 27",
+    note: "One more little snapshot of a love I’m endlessly grateful for.",
+  },
+  {
+    src: "/hoang/hoang_28.jpg",
+    alt: "Hoang memory 28",
+    note: "One more little snapshot of a love I’m endlessly grateful for.",
+  },
 ];
 
