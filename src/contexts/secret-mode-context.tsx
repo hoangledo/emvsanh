@@ -5,10 +5,21 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
 const SECRET_MODE_CLASS = "secret-mode";
+const BOTTOM_THRESHOLD_PX = 40;
+const SCROLL_UP_GESTURE_PX = 100;
+const MIN_WHEEL_DELTA = 80;
+
+function isWindowAtBottom() {
+  if (typeof window === "undefined") return false;
+  const { scrollY, innerHeight } = window;
+  const scrollHeight = document.documentElement.scrollHeight;
+  return scrollY + innerHeight >= scrollHeight - BOTTOM_THRESHOLD_PX;
+}
 
 type SecretModeContextValue = {
   secretModeActive: boolean;
@@ -20,6 +31,8 @@ const SecretModeContext = createContext<SecretModeContextValue | null>(null);
 
 export function SecretModeProvider({ children }: { children: React.ReactNode }) {
   const [secretModeActive, setSecretModeActiveState] = useState(false);
+  const touchStartY = useRef(0);
+  const didTriggerFromTouch = useRef(false);
 
   const setSecretModeActive = useCallback((value: boolean) => {
     setSecretModeActiveState(value);
@@ -56,6 +69,43 @@ export function SecretModeProvider({ children }: { children: React.ReactNode }) 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [toggleSecretMode]);
+
+  useEffect(() => {
+    if (secretModeActive) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (!isWindowAtBottom()) return;
+      if (e.deltaY <= MIN_WHEEL_DELTA) return;
+      e.preventDefault();
+      toggleSecretMode();
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY.current = e.touches[0].clientY;
+      didTriggerFromTouch.current = false;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (didTriggerFromTouch.current) return;
+      if (!isWindowAtBottom()) return;
+      const currentY = e.touches[0].clientY;
+      const movedUp = touchStartY.current - currentY;
+      if (movedUp >= SCROLL_UP_GESTURE_PX) {
+        didTriggerFromTouch.current = true;
+        toggleSecretMode();
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [secretModeActive, toggleSecretMode]);
 
   const value: SecretModeContextValue = {
     secretModeActive,

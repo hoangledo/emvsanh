@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImageIcon, PenLine, Plus, Trash2 } from "@/components/icons";
 import { useSecretMode } from "@/contexts/secret-mode-context";
 import { useSecretFeed } from "@/hooks/use-secret-feed";
@@ -12,6 +12,10 @@ import { cn } from "@/lib/utils";
 import { Modal } from "@/components/ui/modal";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { maxFileSizeMBDisplay } from "@/lib/upload-config";
+
+const BOTTOM_THRESHOLD_PX = 40;
+const SCROLL_UP_GESTURE_PX = 100;
+const MIN_WHEEL_DELTA = 80;
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -272,6 +276,9 @@ export function SecretOverlay() {
   const [addPhotoUploading, setAddPhotoUploading] = useState(false);
   const [addPhotoError, setAddPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const overlayScrollRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef(0);
+  const didTriggerExitTouch = useRef(false);
 
   const loading = notesLoading || photosLoading;
 
@@ -329,6 +336,54 @@ export function SecretOverlay() {
     }
   }
 
+  useEffect(() => {
+    if (!secretModeActive) return;
+    const el = overlayScrollRef.current;
+    if (!el) return;
+
+    function isAtBottom(container: HTMLDivElement) {
+      return (
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - BOTTOM_THRESHOLD_PX
+      );
+    }
+
+    const handleWheel = (e: WheelEvent) => {
+      const container = overlayScrollRef.current;
+      if (!container || !isAtBottom(container)) return;
+      if (e.deltaY <= MIN_WHEEL_DELTA) return;
+      e.preventDefault();
+      toggleSecretMode();
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY.current = e.touches[0].clientY;
+      didTriggerExitTouch.current = false;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (didTriggerExitTouch.current) return;
+      const container = overlayScrollRef.current;
+      if (!container || !isAtBottom(container)) return;
+      const currentY = e.touches[0].clientY;
+      const movedUp = touchStartY.current - currentY;
+      if (movedUp >= SCROLL_UP_GESTURE_PX) {
+        didTriggerExitTouch.current = true;
+        toggleSecretMode();
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: true });
+
+    return () => {
+      el.removeEventListener("wheel", handleWheel);
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [secretModeActive, toggleSecretMode]);
+
   if (!secretModeActive) return null;
 
   return (
@@ -366,9 +421,12 @@ export function SecretOverlay() {
             </div>
           </header>
           <p className="shrink-0 px-4 py-1 text-xs text-muted-foreground sm:px-6">
-            Cmd+S (Mac) or Ctrl+S (Windows) to exit
+            Scroll to bottom, then scroll up to exit · Cmd+S / Ctrl+S to exit
           </p>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+          <div
+            ref={overlayScrollRef}
+            className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6"
+          >
             <div className="mx-auto max-w-2xl space-y-6">
               {loading ? (
                 <div className="space-y-4">
