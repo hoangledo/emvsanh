@@ -153,9 +153,11 @@ function SecretNoteCard({
 function SecretPhotoCard({
   photo,
   onRefetch,
+  onPhotoClick,
 }: {
   photo: SecretPhoto;
   onRefetch: () => void;
+  onPhotoClick?: () => void;
 }) {
   const [editingCaption, setEditingCaption] = useState(false);
   const [caption, setCaption] = useState(photo.caption ?? "");
@@ -194,22 +196,39 @@ function SecretPhotoCard({
 
   return (
     <article className="glass overflow-hidden rounded-2xl border border-border shadow-lg transition-all duration-300 hover:shadow-xl">
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+        <div className="relative min-h-[120px] w-full max-h-[320px] overflow-hidden bg-muted">
         {photo.url ? (
-          <ImageWithFallback
-            src={photo.url}
-            alt={photo.caption ?? "Secret photo"}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+          onPhotoClick ? (
+            <button
+              type="button"
+              onClick={onPhotoClick}
+              className="block h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <ImageWithFallback
+                src={photo.url}
+                alt={photo.caption ?? "Secret photo"}
+                className="h-full w-full object-contain"
+              />
+            </button>
+          ) : (
+            <ImageWithFallback
+              src={photo.url}
+              alt={photo.caption ?? "Secret photo"}
+              className="h-full w-full object-contain"
+            />
+          )
         ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
+          <div className="flex h-full min-h-[160px] items-center justify-center text-muted-foreground">
             <ImageIcon className="h-12 w-12" size={48} />
           </div>
         )}
         <div className="absolute right-2 top-2 flex gap-1">
           <button
             type="button"
-            onClick={() => setEditingCaption(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditingCaption(true);
+            }}
             className="rounded-lg bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:bg-black/60"
             aria-label="Edit caption"
           >
@@ -217,7 +236,10 @@ function SecretPhotoCard({
           </button>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete();
+            }}
             disabled={deleting}
             className="rounded-lg bg-black/40 p-2 text-white backdrop-blur-sm transition-colors hover:bg-red-500/80 disabled:opacity-50"
             aria-label="Delete photo"
@@ -288,6 +310,9 @@ export function SecretOverlay() {
   const [addPhotoCaption, setAddPhotoCaption] = useState("");
   const [addPhotoUploading, setAddPhotoUploading] = useState(false);
   const [addPhotoError, setAddPhotoError] = useState<string | null>(null);
+  const [lightboxPhotoIndex, setLightboxPhotoIndex] = useState<number | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const overlayScrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -295,6 +320,31 @@ export function SecretOverlay() {
   const didTriggerExitTouch = useRef(false);
 
   const loading = notesLoading || photosLoading;
+
+  const closeLightbox = () => setLightboxPhotoIndex(null);
+  const showLightboxPrev = () => {
+    if (photos.length === 0) return;
+    setLightboxPhotoIndex(
+      (i) => (i === null ? 0 : (i - 1 + photos.length) % photos.length)
+    );
+  };
+  const showLightboxNext = () => {
+    if (photos.length === 0) return;
+    setLightboxPhotoIndex(
+      (i) => (i === null ? 0 : (i + 1) % photos.length)
+    );
+  };
+
+  useEffect(() => {
+    if (lightboxPhotoIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowLeft") showLightboxPrev();
+      else if (e.key === "ArrowRight") showLightboxNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxPhotoIndex, photos.length]);
 
   function handleRefetch() {
     refetchNotes();
@@ -439,11 +489,11 @@ export function SecretOverlay() {
               ? "Scroll to bottom, then scroll up to exit"
               : "Cmd+S (Mac) or Ctrl+S (Windows) to exit"}
           </p>
-          <div
-            ref={overlayScrollRef}
-            className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6"
-          >
-            <div className="mx-auto max-w-2xl space-y-6">
+            <div
+              ref={overlayScrollRef}
+              className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6"
+            >
+            <div className="mx-auto max-w-5xl">
               {loading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
@@ -481,10 +531,11 @@ export function SecretOverlay() {
                   </div>
                 </div>
               ) : (
-                feed.map((item) => (
+                <div className="columns-2 gap-4 md:columns-3">
+                {feed.map((item) => (
                   <div
                     key={item.id}
-                    className="transition-all duration-300 ease-out"
+                    className="mb-4 break-inside-avoid transition-all duration-300 ease-out"
                   >
                     {item.type === "note" ? (
                       <SecretNoteCard
@@ -495,15 +546,76 @@ export function SecretOverlay() {
                       <SecretPhotoCard
                         photo={item.photo}
                         onRefetch={handleRefetch}
+                        onPhotoClick={() =>
+                          setLightboxPhotoIndex(
+                            photos.findIndex((p) => p.id === item.photo.id)
+                          )
+                        }
                       />
                     )}
                   </div>
-                ))
+                ))}
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {lightboxPhotoIndex !== null &&
+        photos.length > 0 &&
+        lightboxPhotoIndex >= 0 &&
+        lightboxPhotoIndex < photos.length && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-background/90 backdrop-blur-xl">
+            <div className="glass relative mx-4 max-h-[90vh] w-full max-w-3xl rounded-3xl border border-border p-4 shadow-2xl md:p-6">
+              <div className="flex items-center justify-between pb-3">
+                <p className="text-sm font-medium text-muted-foreground md:text-base">
+                  Secret photo ({lightboxPhotoIndex + 1}/{photos.length})
+                </p>
+                <button
+                  type="button"
+                  className="rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground md:text-sm"
+                  onClick={closeLightbox}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="relative max-h-[60vh] w-full overflow-hidden rounded-2xl">
+                  <ImageWithFallback
+                    src={photos[lightboxPhotoIndex].url ?? ""}
+                    alt={photos[lightboxPhotoIndex].caption ?? "Secret photo"}
+                    className="mx-auto max-h-[60vh] w-full object-contain"
+                  />
+                </div>
+
+                {photos[lightboxPhotoIndex].caption && (
+                  <p className="text-center text-sm text-muted-foreground md:text-base">
+                    {photos[lightboxPhotoIndex].caption}
+                  </p>
+                )}
+
+                <div className="mt-2 flex items-center justify-between">
+                  <button
+                    type="button"
+                    className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    onClick={showLightboxPrev}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    onClick={showLightboxNext}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       <Modal
         open={newNoteOpen}
