@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Dancing_Script, Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { AuthProvider } from "@/contexts/auth-context";
+import { AuthGate } from "@/components/auth-gate";
 import { Navbar } from "@/components/navbar";
 import { HeartsBackground } from "@/components/hearts-background";
 import { CursorHearts } from "@/components/cursor-hearts";
@@ -42,18 +44,22 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${dancingScript.variable} antialiased`}
       >
-        <ThemeProvider>
-          <ScrollProvider>
-            <div className="page-gradient relative min-h-screen overflow-hidden">
-              <HeartsBackground />
-              <CursorHearts />
-              <div className="relative z-10">
-                <Navbar />
-                {children}
-              </div>
-            </div>
-          </ScrollProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <AuthGate>
+            <ThemeProvider>
+              <ScrollProvider>
+                <div className="page-gradient relative min-h-screen overflow-hidden">
+                  <HeartsBackground />
+                  <CursorHearts />
+                  <div className="relative z-10">
+                    <Navbar />
+                    {children}
+                  </div>
+                </div>
+              </ScrollProvider>
+            </ThemeProvider>
+          </AuthGate>
+        </AuthProvider>
       </body>
     </html>
   );

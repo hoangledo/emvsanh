@@ -5,6 +5,7 @@ import { Menu, Moon, Sun, X } from "@/components/icons";
 import Link from "next/link";
 import { useScroll } from "@/components/scroll-provider";
 import { useTheme } from "@/components/theme-provider";
+import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
@@ -32,6 +33,7 @@ function useIsMobile() {
 export function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { scrollY } = useScroll();
+  const { logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
   const scrollPastThreshold = scrollY > 50;
@@ -68,8 +70,15 @@ export function Navbar() {
           ))}
           <button
             type="button"
+            onClick={logout}
+            className="ml-2 rounded-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
+          >
+            Log out
+          </button>
+          <button
+            type="button"
             onClick={toggleTheme}
-            className="ml-2 rounded-full p-2 text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
+            className="rounded-full p-2 text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? (
@@ -118,6 +127,16 @@ export function Navbar() {
                 {label}
               </Link>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                logout();
+              }}
+              className="rounded-lg px-4 py-3 text-left text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
+            >
+              Log out
+            </button>
           </div>
         </div>
       )}
