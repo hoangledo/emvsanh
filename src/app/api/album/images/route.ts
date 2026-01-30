@@ -114,7 +114,10 @@ export async function POST(request: NextRequest) {
 
   if (insertError) {
     await supabase.storage.from(BUCKET).remove([path]);
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
+    return NextResponse.json(
+      { error: insertError.message, code: insertError.code },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({
