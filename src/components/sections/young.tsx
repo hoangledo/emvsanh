@@ -1,62 +1,114 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
+import { useAlbumImages } from "@/hooks/use-album-images";
+import { useAuth } from "@/contexts/auth-context";
+import { ImageIcon, PenLine, Plus, Trash2 } from "@/components/icons";
+import { Modal } from "@/components/ui/modal";
 import { youngPhotos } from "@/data/young";
-import { ImageIcon } from "@/components/icons";
+
+type DisplayItem = { id: string; url: string; alt: string; note: string | null };
 
 export function Young() {
+  const { items, loading, refetch } = useAlbumImages("young");
+  const { isAuthenticated } = useAuth();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState<DisplayItem | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Ensure refs length matches photos
-  const photos = useMemo(() => youngPhotos, []);
+  const fallback: DisplayItem[] = youngPhotos.map((p, i) => ({
+    id: `fallback-${i}`,
+    url: p.src,
+    alt: p.alt,
+    note: p.note,
+  }));
+  const displayItems: DisplayItem[] =
+    items.length > 0
+      ? items.map((r) => ({ id: r.id, url: r.url, alt: r.alt, note: r.note }))
+      : fallback;
+  const canEdit = isAuthenticated;
 
-  // Scroll to the active photo when opening the lightbox
   useEffect(() => {
     if (activeIndex === null) return;
     const el = itemRefs.current[activeIndex];
-    if (el && el.scrollIntoView) {
+    if (el?.scrollIntoView) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [activeIndex]);
 
-  const closeLightbox = () => {
-    setActiveIndex(null);
-  };
-
+  const closeLightbox = () => setActiveIndex(null);
   const showPrev = () => {
     setActiveIndex((current) => {
       if (current === null) return null;
-      const nextIndex = (current - 1 + photos.length) % photos.length;
-      return nextIndex;
+      return (current - 1 + displayItems.length) % displayItems.length;
     });
   };
-
   const showNext = () => {
     setActiveIndex((current) => {
       if (current === null) return null;
-      const nextIndex = (current + 1) % photos.length;
-      return nextIndex;
+      return (current + 1) % displayItems.length;
     });
   };
 
-  // Close on Escape key
   useEffect(() => {
     if (activeIndex === null) return;
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeLightbox();
-      } else if (event.key === "ArrowLeft") {
-        showPrev();
-      } else if (event.key === "ArrowRight") {
-        showNext();
-      }
+      if (event.key === "Escape") closeLightbox();
+      else if (event.key === "ArrowLeft") showPrev();
+      else if (event.key === "ArrowRight") showNext();
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeIndex]);
+
+  async function handleAdd(formData: FormData) {
+    const file = formData.get("file") as File | null;
+    if (!file?.size) return;
+    const fd = new FormData();
+    fd.set("section", "young");
+    fd.set("alt", (formData.get("alt") as string) ?? "");
+    fd.set("note", (formData.get("note") as string) ?? "");
+    fd.set("file", file);
+    const res = await fetch("/api/album/images", { method: "POST", body: fd });
+    if (res.ok) {
+      setAddOpen(false);
+      refetch();
+    }
+  }
+
+  async function handleEdit(id: string, alt: string, note: string) {
+    const res = await fetch(`/api/album/images/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ alt, note }),
+    });
+    if (res.ok) {
+      setEditOpen(null);
+      refetch();
+    }
+  }
+
+  async function handleDelete(id: string) {
+    const res = await fetch(`/api/album/images/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setDeleteId(null);
+      refetch();
+    }
+  }
+
+  if (loading && items.length === 0) {
+    return (
+      <section id="young" className="relative min-h-screen px-6 py-24">
+        <div className="mx-auto max-w-7xl text-center text-muted-foreground">
+          Loading…
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="young" className="relative min-h-screen px-6 py-24">
@@ -76,28 +128,73 @@ export function Young() {
           <p className="mt-4 text-lg text-muted-foreground">
             A little album of our younger days, one memory at a time
           </p>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <Plus className="h-4 w-4" size={16} />
+              Add image
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
-          {photos.map((photo, index) => (
-            <button
-              key={photo.src}
-              type="button"
-              className="group relative overflow-hidden rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              onClick={() => setActiveIndex(index)}
+          {displayItems.map((photo, index) => (
+            <div
+              key={photo.id}
+              className="group relative overflow-hidden rounded-2xl"
               style={{
                 animation: `fadeIn 0.8s ease-out ${index * 0.1}s both`,
               }}
             >
-              <div className="relative aspect-3/4 w-full overflow-hidden rounded-2xl">
-                <ImageWithFallback
-                  src={photo.src}
-                  alt={photo.alt}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-              </div>
-            </button>
+              {canEdit && (
+                <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditOpen({
+                        id: photo.id,
+                        url: photo.url,
+                        alt: photo.alt,
+                        note: photo.note,
+                      });
+                    }}
+                    className="rounded-full bg-card/90 p-2 shadow hover:bg-accent hover:text-accent-foreground"
+                    aria-label="Edit"
+                  >
+                    <PenLine className="h-4 w-4" size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteId(photo.id);
+                    }}
+                    className="rounded-full bg-card/90 p-2 shadow hover:bg-red-600 hover:text-white"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" size={16} />
+                  </button>
+                </div>
+              )}
+              <button
+                type="button"
+                className="w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                onClick={() => setActiveIndex(index)}
+              >
+                <div className="relative aspect-3/4 w-full overflow-hidden rounded-2xl">
+                  <ImageWithFallback
+                    src={photo.url}
+                    alt={photo.alt}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                </div>
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -107,7 +204,7 @@ export function Young() {
           <div className="flex h-full flex-col">
             <div className="flex items-center justify-between px-6 py-4">
               <h3 className="font-serif text-lg text-foreground md:text-2xl">
-                Young memories ({activeIndex + 1}/{photos.length})
+                Young memories ({activeIndex + 1}/{displayItems.length})
               </h3>
               <button
                 type="button"
@@ -122,18 +219,18 @@ export function Young() {
               ref={containerRef}
               className="flex-1 overflow-y-auto scroll-smooth snap-y snap-mandatory px-4 pb-8"
             >
-              {photos.map((photo, index) => (
+              {displayItems.map((photo, index) => (
                 <div
-                  key={photo.src}
+                  key={photo.id}
                   ref={(el) => {
                     itemRefs.current[index] = el;
                   }}
-                  className="snap-center flex min-h-[80vh] flex-col items-center justify-center py-8"
+                  className="flex min-h-[80vh] snap-center flex-col items-center justify-center py-8"
                 >
                   <div className="glass max-w-3xl w-full rounded-3xl border border-border p-4 shadow-2xl">
                     <div className="relative mx-auto mb-4 max-h-[60vh] w-full overflow-hidden rounded-2xl">
                       <ImageWithFallback
-                        src={photo.src}
+                        src={photo.url}
                         alt={photo.alt}
                         className="mx-auto max-h-[60vh] w-full object-contain"
                       />
@@ -143,7 +240,7 @@ export function Young() {
                         {photo.alt}
                       </p>
                       <p className="text-sm text-muted-foreground md:text-base">
-                        {photo.note}
+                        {photo.note ?? ""}
                       </p>
                     </div>
                   </div>
@@ -170,7 +267,140 @@ export function Young() {
           </div>
         </div>
       )}
+
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add image">
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await handleAdd(new FormData(e.currentTarget));
+          }}
+        >
+          <input
+            type="file"
+            name="file"
+            accept="image/*"
+            required
+            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
+          />
+          <input
+            type="text"
+            name="alt"
+            placeholder="Alt / title"
+            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
+          />
+          <textarea
+            name="note"
+            placeholder="Note"
+            rows={2}
+            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setAddOpen(false)}
+              className="rounded-lg border border-border px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
+            >
+              Add
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {editOpen && !editOpen.id.startsWith("fallback") && (
+        <Modal
+          open={!!editOpen}
+          onClose={() => setEditOpen(null)}
+          title="Edit image"
+        >
+          <EditForm
+            initialAlt={editOpen.alt}
+            initialNote={editOpen.note ?? ""}
+            onSave={(alt, note) => handleEdit(editOpen.id, alt, note)}
+            onCancel={() => setEditOpen(null)}
+          />
+        </Modal>
+      )}
+
+      {deleteId && !deleteId.startsWith("fallback") && (
+        <Modal
+          open={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          title="Delete image?"
+        >
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setDeleteId(null)}
+              className="rounded-lg border border-border px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDelete(deleteId)}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white"
+            >
+              Delete
+            </button>
+          </div>
+        </Modal>
+      )}
     </section>
   );
 }
 
+function EditForm({
+  initialAlt,
+  initialNote,
+  onSave,
+  onCancel,
+}: {
+  initialAlt: string;
+  initialNote: string;
+  onSave: (alt: string, note: string) => void;
+  onCancel: () => void;
+}) {
+  const [alt, setAlt] = useState(initialAlt);
+  const [note, setNote] = useState(initialNote);
+  return (
+    <div className="flex flex-col gap-4">
+      <input
+        type="text"
+        value={alt}
+        onChange={(e) => setAlt(e.target.value)}
+        placeholder="Alt / title"
+        className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
+      />
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Note"
+        rows={2}
+        className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
+      />
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border border-border px-4 py-2 text-sm"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => onSave(alt, note)}
+          className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  );
+}

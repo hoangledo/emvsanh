@@ -2,32 +2,52 @@
 
 import { useEffect, useState } from "react";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
+import { useAlbumImages } from "@/hooks/use-album-images";
+import { useAuth } from "@/contexts/auth-context";
+import { Heart, PenLine, Plus, Trash2 } from "@/components/icons";
+import { Modal } from "@/components/ui/modal";
 import { maiPhotos } from "@/data/mai";
-import { Heart } from "@/components/icons";
 
 const PHOTOS_PER_PAGE = 12;
 
+type DisplayItem = { id: string; url: string; alt: string; note: string | null };
+
 export function Mai() {
+  const { items, loading, refetch } = useAlbumImages("mai");
+  const { isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState<DisplayItem | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const totalPages = Math.ceil(maiPhotos.length / PHOTOS_PER_PAGE);
+  const fallback: DisplayItem[] = maiPhotos.map((p, i) => ({
+    id: `fallback-${i}`,
+    url: p.src,
+    alt: p.alt,
+    note: null,
+  }));
+  const displayItems: DisplayItem[] =
+    items.length > 0
+      ? items.map((r) => ({ id: r.id, url: r.url, alt: r.alt, note: r.note }))
+      : fallback;
+  const canEdit = isAuthenticated;
+
+  const totalPages = Math.ceil(displayItems.length / PHOTOS_PER_PAGE);
   const start = (currentPage - 1) * PHOTOS_PER_PAGE;
-  const pagePhotos = maiPhotos.slice(start, start + PHOTOS_PER_PAGE);
+  const pagePhotos = displayItems.slice(start, start + PHOTOS_PER_PAGE);
 
   const closeLightbox = () => setActiveIndex(null);
-
   const showPrev = () => {
     setActiveIndex((current) => {
       if (current === null) return null;
-      return (current - 1 + maiPhotos.length) % maiPhotos.length;
+      return (current - 1 + displayItems.length) % displayItems.length;
     });
   };
-
   const showNext = () => {
     setActiveIndex((current) => {
       if (current === null) return null;
-      return (current + 1) % maiPhotos.length;
+      return (current + 1) % displayItems.length;
     });
   };
 
@@ -42,6 +62,51 @@ export function Mai() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeIndex]);
 
+  async function handleAdd(formData: FormData) {
+    const file = formData.get("file") as File | null;
+    if (!file?.size) return;
+    const fd = new FormData();
+    fd.set("section", "mai");
+    fd.set("alt", (formData.get("alt") as string) ?? "");
+    fd.set("note", "");
+    fd.set("file", file);
+    const res = await fetch("/api/album/images", { method: "POST", body: fd });
+    if (res.ok) {
+      setAddOpen(false);
+      refetch();
+    }
+  }
+
+  async function handleEdit(id: string, alt: string) {
+    const res = await fetch(`/api/album/images/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ alt }),
+    });
+    if (res.ok) {
+      setEditOpen(null);
+      refetch();
+    }
+  }
+
+  async function handleDelete(id: string) {
+    const res = await fetch(`/api/album/images/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setDeleteId(null);
+      refetch();
+    }
+  }
+
+  if (loading && items.length === 0) {
+    return (
+      <section id="mai" className="relative min-h-screen px-6 py-24">
+        <div className="mx-auto max-w-7xl text-center text-muted-foreground">
+          Loading…
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="mai" className="relative min-h-screen px-6 py-24">
       <div className="absolute inset-0 opacity-10">
@@ -50,7 +115,11 @@ export function Mai() {
 
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mb-16 text-center">
-          <Heart className="mx-auto mb-4 h-12 w-12 text-accent" size={48} fill="currentColor" />
+          <Heart
+            className="mx-auto mb-4 h-12 w-12 text-accent"
+            size={48}
+            fill="currentColor"
+          />
           <h2
             className="font-serif text-foreground transition-colors duration-700"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
@@ -60,34 +129,79 @@ export function Mai() {
           <p className="mt-4 text-lg text-muted-foreground">
             Moments with Mai – a scroll of memories
           </p>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <Plus className="h-4 w-4" size={16} />
+              Add image
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-4">
           {pagePhotos.map((photo, index) => {
             const globalIndex = start + index;
             return (
-              <button
-                key={photo.src}
-                type="button"
-                className="group relative overflow-hidden rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                onClick={() => setActiveIndex(globalIndex)}
+              <div
+                key={photo.id}
+                className="group relative"
                 style={{
                   animation: `fadeIn 0.6s ease-out ${Math.min(index * 0.05, 0.5)}s both`,
                 }}
               >
-                <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
-                  <ImageWithFallback
-                    src={photo.src}
-                    alt={photo.alt}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                </div>
-                <p className="mt-2 text-center text-xs font-medium text-muted-foreground sm:text-sm">
-                  {photo.alt}
-                </p>
-              </button>
+                {canEdit && (
+                  <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditOpen({
+                          id: photo.id,
+                          url: photo.url,
+                          alt: photo.alt,
+                          note: photo.note,
+                        });
+                      }}
+                      className="rounded-full bg-card/90 p-2 shadow hover:bg-accent hover:text-accent-foreground"
+                      aria-label="Edit"
+                    >
+                      <PenLine className="h-4 w-4" size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteId(photo.id);
+                      }}
+                      className="rounded-full bg-card/90 p-2 shadow hover:bg-red-600 hover:text-white"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" size={16} />
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  onClick={() => setActiveIndex(globalIndex)}
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
+                    <ImageWithFallback
+                      src={photo.url}
+                      alt={photo.alt}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  </div>
+                  <p className="mt-2 text-center text-xs font-medium text-muted-foreground sm:text-sm">
+                    {photo.alt}
+                  </p>
+                </button>
+              </div>
             );
           })}
         </div>
@@ -120,7 +234,7 @@ export function Mai() {
           <div className="glass relative mx-4 flex max-h-[90vh] w-full max-w-4xl flex-col rounded-3xl border border-border p-4 shadow-2xl md:p-6">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-sm text-muted-foreground md:text-base">
-                {activeIndex + 1} / {maiPhotos.length}
+                {activeIndex + 1} / {displayItems.length}
               </span>
               <button
                 type="button"
@@ -132,13 +246,13 @@ export function Mai() {
             </div>
             <div className="relative max-h-[75vh] w-full overflow-hidden rounded-2xl">
               <ImageWithFallback
-                src={maiPhotos[activeIndex].src}
-                alt={maiPhotos[activeIndex].alt}
+                src={displayItems[activeIndex].url}
+                alt={displayItems[activeIndex].alt}
                 className="mx-auto max-h-[75vh] w-full object-contain"
               />
             </div>
             <p className="mt-3 text-center text-sm font-medium text-foreground md:text-base">
-              {maiPhotos[activeIndex].alt}
+              {displayItems[activeIndex].alt}
             </p>
             <div className="mt-4 flex items-center justify-between">
               <button
@@ -159,6 +273,123 @@ export function Mai() {
           </div>
         </div>
       )}
+
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add image">
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await handleAdd(new FormData(e.currentTarget));
+          }}
+        >
+          <input
+            type="file"
+            name="file"
+            accept="image/*"
+            required
+            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
+          />
+          <input
+            type="text"
+            name="alt"
+            placeholder="Alt / title"
+            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setAddOpen(false)}
+              className="rounded-lg border border-border px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
+            >
+              Add
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {editOpen && !editOpen.id.startsWith("fallback") && (
+        <Modal
+          open={!!editOpen}
+          onClose={() => setEditOpen(null)}
+          title="Edit image"
+        >
+          <EditForm
+            initialAlt={editOpen.alt}
+            onSave={(alt) => handleEdit(editOpen.id, alt)}
+            onCancel={() => setEditOpen(null)}
+          />
+        </Modal>
+      )}
+
+      {deleteId && !deleteId.startsWith("fallback") && (
+        <Modal
+          open={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          title="Delete image?"
+        >
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setDeleteId(null)}
+              className="rounded-lg border border-border px-4 py-2 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDelete(deleteId)}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white"
+            >
+              Delete
+            </button>
+          </div>
+        </Modal>
+      )}
     </section>
+  );
+}
+
+function EditForm({
+  initialAlt,
+  onSave,
+  onCancel,
+}: {
+  initialAlt: string;
+  onSave: (alt: string) => void;
+  onCancel: () => void;
+}) {
+  const [alt, setAlt] = useState(initialAlt);
+  return (
+    <div className="flex flex-col gap-4">
+      <input
+        type="text"
+        value={alt}
+        onChange={(e) => setAlt(e.target.value)}
+        placeholder="Alt / title"
+        className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
+      />
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border border-border px-4 py-2 text-sm"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => onSave(alt)}
+          className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
+        >
+          Save
+        </button>
+      </div>
+    </div>
   );
 }
