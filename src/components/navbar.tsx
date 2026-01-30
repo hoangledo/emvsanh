@@ -8,6 +8,7 @@ import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { Modal } from "@/components/ui/modal";
 
 const navLinks = [
   { href: "#home", label: "Home" },
@@ -35,8 +36,59 @@ export function Navbar() {
   const { scrollY } = useScroll();
   const { logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [recoveryPhrase, setRecoveryPhrase] = useState("");
+  const [changeError, setChangeError] = useState("");
+  const [changeLoading, setChangeLoading] = useState(false);
+  const [changeSuccess, setChangeSuccess] = useState(false);
   const isMobile = useIsMobile();
   const scrollPastThreshold = scrollY > 50;
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setChangeError("");
+    if (newPassword !== confirmPassword) {
+      setChangeError("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setChangeError("New password must be at least 8 characters.");
+      return;
+    }
+    if (recoveryPhrase.length < 8) {
+      setChangeError("Recovery phrase must be at least 8 characters.");
+      return;
+    }
+    setChangeLoading(true);
+    const res = await fetch("/api/auth/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        currentPassword,
+        newPassword,
+        recoveryPhrase,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setChangeLoading(false);
+    if (res.ok) {
+      setChangeSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setRecoveryPhrase("");
+      setTimeout(() => {
+        setChangePasswordOpen(false);
+        setChangeSuccess(false);
+        logout();
+      }, 2000);
+      return;
+    }
+    setChangeError(data?.error ?? "Change failed.");
+  }
 
   return (
     <header
@@ -70,8 +122,19 @@ export function Navbar() {
           ))}
           <button
             type="button"
-            onClick={logout}
+            onClick={() => {
+              setChangePasswordOpen(true);
+              setChangeError("");
+              setChangeSuccess(false);
+            }}
             className="ml-2 rounded-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
+          >
+            Change password
+          </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="rounded-full px-3 py-2 text-sm text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
           >
             Log out
           </button>
@@ -131,6 +194,18 @@ export function Navbar() {
               type="button"
               onClick={() => {
                 setMobileOpen(false);
+                setChangePasswordOpen(true);
+                setChangeError("");
+                setChangeSuccess(false);
+              }}
+              className="rounded-lg px-4 py-3 text-left text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
+            >
+              Change password
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
                 logout();
               }}
               className="rounded-lg px-4 py-3 text-left text-foreground hover:bg-muted/50 hover:text-accent transition-colors"
@@ -140,6 +215,91 @@ export function Navbar() {
           </div>
         </div>
       )}
+
+      <Modal
+        open={changePasswordOpen}
+        onClose={() => {
+          setChangePasswordOpen(false);
+          setChangeError("");
+          setCurrentPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+          setRecoveryPhrase("");
+        }}
+        title="Change password"
+      >
+        {changeSuccess ? (
+          <p className="text-sm text-foreground">
+            Password updated. You will be logged out; log in with your new password.
+          </p>
+        ) : (
+          <form onSubmit={handleChangePassword} className="flex flex-col gap-4">
+            <p className="text-xs text-muted-foreground">
+              Save your recovery phrase somewhere safe; you will need it if you forget your password.
+            </p>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Current password"
+              required
+              className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              disabled={changeLoading}
+            />
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New password (min 8 characters)"
+              required
+              minLength={8}
+              className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              disabled={changeLoading}
+            />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm new password"
+              required
+              minLength={8}
+              className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              disabled={changeLoading}
+            />
+            <input
+              type="password"
+              value={recoveryPhrase}
+              onChange={(e) => setRecoveryPhrase(e.target.value)}
+              placeholder="Recovery phrase (min 8 characters)"
+              required
+              minLength={8}
+              className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              disabled={changeLoading}
+            />
+            {changeError && (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {changeError}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setChangePasswordOpen(false)}
+                className="rounded-xl border border-border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={changeLoading}
+                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90 disabled:opacity-50"
+              >
+                {changeLoading ? "Saving…" : "Change password"}
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </header>
   );
 }

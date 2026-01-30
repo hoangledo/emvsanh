@@ -1,10 +1,13 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { LoginPage } from "@/components/login-page";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isReady } = useAuth();
+  const pathname = usePathname();
+  const isResetPasswordPage = pathname === "/reset-password";
 
   if (!isReady) {
     return (
@@ -15,7 +18,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isResetPasswordPage) {
     return <LoginPage />;
   }
 

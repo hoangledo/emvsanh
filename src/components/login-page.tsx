@@ -3,12 +3,18 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { Heart } from "@/components/icons";
+import { Modal } from "@/components/ui/modal";
 
 export function LoginPage() {
   const { login } = useAuth();
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotError, setForgotError] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -17,6 +23,29 @@ export function LoginPage() {
     const ok = await login(password);
     setLoading(false);
     if (!ok) setError("Wrong password. Try again.");
+  }
+
+  async function handleForgotSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotError("");
+    setForgotLoading(true);
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setForgotLoading(false);
+    if (res.ok) {
+      setForgotSuccess(true);
+      setForgotEmail("");
+      setTimeout(() => {
+        setForgotOpen(false);
+        setForgotSuccess(false);
+      }, 3000);
+      return;
+    }
+    setForgotError(data?.error ?? "Request failed.");
   }
 
   return (
@@ -61,8 +90,75 @@ export function LoginPage() {
           >
             {loading ? "Checking…" : "Enter"}
           </button>
+          <p className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setForgotOpen(true);
+                setForgotError("");
+                setForgotSuccess(false);
+              }}
+              className="text-sm text-muted-foreground underline hover:text-accent"
+            >
+              Forgot password?
+            </button>
+          </p>
         </form>
       </div>
+
+      <Modal
+        open={forgotOpen}
+        onClose={() => {
+          setForgotOpen(false);
+          setForgotError("");
+          setForgotEmail("");
+        }}
+        title="Reset password"
+      >
+        {forgotSuccess ? (
+          <p className="text-center text-sm text-foreground">
+            If that email is registered, we sent a reset link. Check your inbox
+            and use the link to set a new password. The link expires in 1 hour.
+          </p>
+        ) : (
+          <form onSubmit={handleForgotSubmit} className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Enter your email address. We will send a reset link only to the
+              registered email.
+            </p>
+            <input
+              type="email"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              placeholder="Your email"
+              required
+              className="rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              disabled={forgotLoading}
+            />
+            {forgotError && (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {forgotError}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setForgotOpen(false)}
+                className="rounded-xl border border-border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={forgotLoading}
+                className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-colors hover:opacity-90 disabled:opacity-50"
+              >
+                {forgotLoading ? "Sending…" : "Send reset link"}
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   );
 }

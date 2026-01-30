@@ -59,7 +59,3 @@ Open [http://localhost:3000](http://localhost:3000). Edit `src/app/page.tsx` and
 npm run build
 npm start
 ```
-
-## Deploy
-
-You can deploy with [Vercel](https://vercel.com/new) or any platform that supports Next.js. See [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying).
