@@ -48,7 +48,7 @@ export default function RootLayout({
           <AuthGate>
             <ThemeProvider>
               <ScrollProvider>
-                <div className="page-gradient relative min-h-screen overflow-hidden">
+                <div className="page-gradient relative min-h-screen overflow-x-hidden overflow-y-auto">
                   <HeartsBackground />
                   <CursorHearts />
                   <div className="relative z-10">

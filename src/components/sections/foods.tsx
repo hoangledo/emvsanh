@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { useAlbumImages } from "@/hooks/use-album-images";
 import { useAuth } from "@/contexts/auth-context";
-import { Heart, PenLine, Plus, Trash2 } from "@/components/icons";
+import { ChevronLeft, ChevronRight, Heart, PenLine, Plus, Trash2 } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
 import {
   maxFilesPerUpload,
@@ -36,15 +36,6 @@ export function Foods() {
     note: r.note,
   }));
   const canEdit = isAuthenticated;
-
-  const goPrev = () => {
-    setCurrentIndex((i) =>
-      (i - 1 + displayItems.length) % displayItems.length
-    );
-  };
-  const goNext = () => {
-    setCurrentIndex((i) => (i + 1) % displayItems.length);
-  };
 
   useEffect(() => {
     const el = slideRefs.current[currentIndex];
@@ -166,7 +157,7 @@ export function Foods() {
   }
 
   return (
-    <section id="foods" className="relative min-h-screen px-6 py-24">
+    <section id="foods" className="relative min-h-screen overflow-x-hidden px-6 py-24">
       <div className="absolute inset-0 opacity-10">
         <div className="absolute left-1/3 top-1/4 h-80 w-80 rounded-full blur-3xl bg-accent/40" />
       </div>
@@ -201,7 +192,7 @@ export function Foods() {
 
         <div
           ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto overflow-y-hidden pb-4 scroll-smooth snap-x snap-mandatory [-webkit-overflow-scrolling:touch]"
+          className="scrollbar-hide flex gap-6 overflow-x-auto overflow-y-hidden pb-4 scroll-smooth snap-x snap-mandatory [-webkit-overflow-scrolling:touch]"
           aria-label="Food photos carousel"
         >
           {displayItems.length === 0 ? (
@@ -273,22 +264,74 @@ export function Foods() {
           <div className="mt-6 flex items-center justify-center gap-4">
             <button
               type="button"
-              onClick={goPrev}
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              onClick={() => {
+                const prev =
+                  (currentIndex - 1 + displayItems.length) % displayItems.length;
+                setCurrentIndex(prev);
+                slideRefs.current[prev]?.scrollIntoView({
+                  behavior: "smooth",
+                  inline: "center",
+                  block: "nearest",
+                });
+              }}
+              className="rounded-full border border-border bg-card p-2 text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               aria-label="Previous food photo"
             >
-              Previous
+              <ChevronLeft className="h-5 w-5" size={20} />
             </button>
-            <span className="text-sm text-muted-foreground">
-              {currentIndex + 1} / {displayItems.length}
-            </span>
+            <div className="flex items-center justify-center gap-2">
+              {(() => {
+                const maxDots = 5;
+                const total = displayItems.length;
+                const dotIndices =
+                  total <= maxDots
+                    ? Array.from({ length: total }, (_, i) => i)
+                    : Array.from(
+                        { length: maxDots },
+                        (_, i) =>
+                          Math.min(
+                            Math.max(0, currentIndex - 2),
+                            total - maxDots
+                          ) + i
+                      );
+                return dotIndices.map((index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setCurrentIndex(index);
+                      slideRefs.current[index]?.scrollIntoView({
+                        behavior: "smooth",
+                        inline: "center",
+                        block: "nearest",
+                      });
+                    }}
+                    className={`h-2.5 w-2.5 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                      index === currentIndex
+                        ? "bg-accent scale-125"
+                        : "bg-muted-foreground/40 hover:bg-muted-foreground/60"
+                    }`}
+                    aria-label={`Go to food photo ${index + 1} of ${displayItems.length}`}
+                    aria-current={index === currentIndex ? "true" : undefined}
+                  />
+                ));
+              })()}
+            </div>
             <button
               type="button"
-              onClick={goNext}
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              onClick={() => {
+                const next = (currentIndex + 1) % displayItems.length;
+                setCurrentIndex(next);
+                slideRefs.current[next]?.scrollIntoView({
+                  behavior: "smooth",
+                  inline: "center",
+                  block: "nearest",
+                });
+              }}
+              className="rounded-full border border-border bg-card p-2 text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               aria-label="Next food photo"
             >
-              Next
+              <ChevronRight className="h-5 w-5" size={20} />
             </button>
           </div>
         )}
