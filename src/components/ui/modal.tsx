@@ -8,9 +8,11 @@ type ModalProps = {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  /** Optional z-index so modal appears above overlays (e.g. secret mode uses 110) */
+  zIndex?: number;
 };
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, zIndex }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -23,7 +25,10 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={zIndex !== undefined ? { zIndex } : undefined}
+    >
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}

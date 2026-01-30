@@ -7,6 +7,8 @@ import { HeartsBackground } from "@/components/hearts-background";
 import { CursorHearts } from "@/components/cursor-hearts";
 import { ScrollProvider } from "@/components/scroll-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SecretModeProvider } from "@/contexts/secret-mode-context";
+import { SecretOverlay } from "@/components/secret-overlay";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,7 +49,8 @@ export default function RootLayout({
         <AuthProvider>
           <AuthGate>
             <ThemeProvider>
-              <ScrollProvider>
+              <SecretModeProvider>
+                <ScrollProvider>
                 <div className="page-gradient relative min-h-screen overflow-x-hidden overflow-y-auto">
                   <HeartsBackground />
                   <CursorHearts />
@@ -55,8 +58,10 @@ export default function RootLayout({
                     <Navbar />
                     {children}
                   </div>
+                  <SecretOverlay />
                 </div>
-              </ScrollProvider>
+                </ScrollProvider>
+              </SecretModeProvider>
             </ThemeProvider>
           </AuthGate>
         </AuthProvider>
