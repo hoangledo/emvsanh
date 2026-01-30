@@ -6,6 +6,11 @@ import { useAlbumImages } from "@/hooks/use-album-images";
 import { useAuth } from "@/contexts/auth-context";
 import { Heart, PenLine, Plus, Trash2 } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
+import {
+  maxFilesPerUpload,
+  maxFileSizeBytes,
+  maxFileSizeMBDisplay,
+} from "@/lib/upload-config";
 
 const PHOTOS_PER_PAGE_MOBILE = 8;
 
@@ -17,6 +22,11 @@ export function Hoang() {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
+  const [addError, setAddError] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState<DisplayItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -63,15 +73,45 @@ export function Hoang() {
   }, [activeIndex]);
 
   async function handleAdd(formData: FormData) {
-    const file = formData.get("file") as File | null;
-    if (!file?.size) return;
-    const fd = new FormData();
-    fd.set("section", "hoang");
-    fd.set("alt", (formData.get("alt") as string) ?? "");
-    fd.set("note", (formData.get("note") as string) ?? "");
-    fd.set("file", file);
-    const res = await fetch("/api/album/images", { method: "POST", body: fd });
-    if (res.ok) {
+    const raw = formData.getAll("file");
+    const files = (raw.length ? raw : [formData.get("file")]).filter(
+      (f): f is File => f instanceof File && f.size > 0
+    );
+    if (files.length === 0) return;
+    const toUpload = files
+      .filter((f) => f.size <= maxFileSizeBytes)
+      .slice(0, maxFilesPerUpload);
+    const skipped = files.length - toUpload.length;
+    if (toUpload.length === 0) {
+      setAddError(
+        skipped > 0
+          ? `All files exceed ${maxFileSizeMBDisplay} MB or max ${maxFilesPerUpload} photos.`
+          : "No valid files."
+      );
+      return;
+    }
+    setAddError(null);
+    setUploadProgress({ current: 0, total: toUpload.length });
+    const alt = (formData.get("alt") as string) ?? "";
+    const note = (formData.get("note") as string) ?? "";
+    let ok = true;
+    for (let i = 0; i < toUpload.length; i++) {
+      const fd = new FormData();
+      fd.set("section", "hoang");
+      fd.set("alt", alt);
+      fd.set("note", note);
+      fd.set("file", toUpload[i]);
+      setUploadProgress({ current: i + 1, total: toUpload.length });
+      const res = await fetch("/api/album/images", { method: "POST", body: fd });
+      if (!res.ok) {
+        ok = false;
+        const data = await res.json().catch(() => ({}));
+        setAddError(data?.error ?? "Upload failed");
+        break;
+      }
+    }
+    setUploadProgress(null);
+    if (ok) {
       setAddOpen(false);
       refetch();
     }
@@ -386,10 +426,14 @@ export function Hoang() {
             await handleAdd(new FormData(e.currentTarget));
           }}
         >
+          <p className="text-xs text-muted-foreground">
+            Max {maxFilesPerUpload} photos, {maxFileSizeMBDisplay} MB each.
+          </p>
           <input
             type="file"
             name="file"
             accept="image/*"
+            multiple
             required
             className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
           />
@@ -405,19 +449,29 @@ export function Hoang() {
             rows={2}
             className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
           />
+          {uploadProgress && (
+            <p className="text-sm text-muted-foreground">
+              Uploading {uploadProgress.current} of {uploadProgress.total}…
+            </p>
+          )}
+          {addError && (
+            <p className="text-sm text-red-600 dark:text-red-400">{addError}</p>
+          )}
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setAddOpen(false)}
               className="rounded-lg border border-border px-4 py-2 text-sm"
+              disabled={!!uploadProgress}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
+              className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground disabled:opacity-50"
+              disabled={!!uploadProgress}
             >
-              Add
+              {uploadProgress ? "Uploading…" : "Add"}
             </button>
           </div>
         </form>

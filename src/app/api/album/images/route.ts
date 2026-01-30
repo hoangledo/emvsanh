@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { maxFileSizeBytes } from "@/lib/upload-config";
 import type { AlbumSection } from "@/types/album";
 
 const BUCKET = "album";
@@ -64,6 +65,14 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json(
       { error: "Missing section, file, or invalid section" },
+      { status: 400 }
+    );
+  }
+  if (file.size > maxFileSizeBytes) {
+    return NextResponse.json(
+      {
+        error: `File exceeds max size of ${Math.round(maxFileSizeBytes / 1024 / 1024)} MB`,
+      },
       { status: 400 }
     );
   }
