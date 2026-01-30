@@ -1,190 +1,109 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, PenLine, Plus, Trash2 } from "@/components/icons";
+import {
+  Facebook,
+  Instagram,
+  LinkedIn,
+  Mail,
+  PenLine,
+  Plus,
+  Trash2,
+} from "@/components/icons";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
-import { useMoments } from "@/hooks/use-moments";
-import { useAuth } from "@/contexts/auth-context";
 import { Modal } from "@/components/ui/modal";
+import { useAuth } from "@/contexts/auth-context";
+import {
+  herAndIStaticConfig,
+  type HerAndIStaticPerson,
+  type HerAndISocial,
+} from "@/data/her-and-i";
+import {
+  useHerAndI,
+  type HerAndIPhoto,
+  type HerAndIPersonSlug,
+} from "@/hooks/use-her-and-i";
+import { cn } from "@/lib/utils";
 
-type DisplayMoment = {
-  id: string;
-  title: string;
-  date: string;
-  description: string;
-  url: string;
-};
+const MAX_INTRO_PHOTOS = 3;
 
-export function Moments() {
-  const { items, loading, refetch } = useMoments();
-  const { isAuthenticated } = useAuth();
-  const [addOpen, setAddOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState<DisplayMoment | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const displayItems: DisplayMoment[] = items.map((r) => ({
-    id: r.id,
-    title: r.title,
-    date: r.date,
-    description: r.description,
-    url: r.url,
-  }));
-  const canEdit = isAuthenticated;
+function IntroPhotoRow({
+  photos,
+  name,
+  personSlug,
+  canEdit,
+  canAddPhoto,
+  onAdd,
+  onRemove,
+  onRefetch,
+}: {
+  photos: { id?: string; url: string }[];
+  name: string;
+  personSlug: HerAndIPersonSlug;
+  canEdit: boolean;
+  canAddPhoto: boolean;
+  onAdd: (formData: FormData) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
+  onRefetch: () => void;
+}) {
+  const [adding, setAdding] = useState(false);
 
   async function handleAdd(formData: FormData) {
-    const file = formData.get("file") as File | null;
-    if (!file?.size) return;
-    const fd = new FormData();
-    fd.set("title", (formData.get("title") as string) ?? "");
-    fd.set("date", (formData.get("date") as string) ?? "");
-    fd.set("description", (formData.get("description") as string) ?? "");
-    fd.set("file", file);
-    const res = await fetch("/api/album/moments", { method: "POST", body: fd });
-    if (res.ok) {
-      setAddOpen(false);
-      refetch();
-    }
-  }
-
-  async function handleEdit(
-    id: string,
-    title: string,
-    date: string,
-    description: string
-  ) {
-    const res = await fetch(`/api/album/moments/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, date, description }),
-    });
-    if (res.ok) {
-      setEditOpen(null);
-      refetch();
-    }
-  }
-
-  async function handleDelete(id: string) {
-    const res = await fetch(`/api/album/moments/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      setDeleteId(null);
-      refetch();
-    }
-  }
-
-  if (loading && items.length === 0) {
-    return (
-      <section id="moments" className="relative min-h-screen px-6 py-24">
-        <div className="mx-auto max-w-7xl text-center text-muted-foreground">
-          Loading…
-        </div>
-      </section>
-    );
+    await onAdd(formData);
+    setAdding(false);
+    onRefetch();
   }
 
   return (
-    <section id="moments" className="relative min-h-screen px-6 py-24">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-16 text-center">
-          <Calendar
-            className="mx-auto mb-4 h-12 w-12 text-accent"
-            size={48}
-          />
-          <h2
-            className="font-serif text-foreground transition-colors duration-700"
-            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
-          >
-            Our Moments
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            A collection of memories that make my heart smile
-          </p>
-          {canEdit && (
+    <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
+      {photos.slice(0, MAX_INTRO_PHOTOS).map((photo, i) => (
+        <div
+          key={photo.id ?? `fallback-${i}`}
+          className={cn(
+            "relative shrink-0 transition-all duration-300 ease-out",
+            "hover:z-20 hover:scale-110 hover:-translate-y-2 hover:drop-shadow-2xl",
+            "rounded-2xl overflow-hidden border border-border"
+          )}
+        >
+          <div className="h-[200px] w-[140px] sm:h-[240px] sm:w-[168px]">
+            <ImageWithFallback
+              src={photo.url}
+              alt={`${name} ${i + 1}`}
+              className="h-full w-full object-cover transition-transform duration-300"
+            />
+          </div>
+          {canEdit && photo.id && (
             <button
               type="button"
-              onClick={() => setAddOpen(true)}
-              className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              onClick={async () => {
+                await onRemove(photo.id!);
+                onRefetch();
+              }}
+              className="absolute right-2 top-2 z-30 rounded-full bg-black/60 p-2 text-white shadow hover:bg-red-600"
+              aria-label="Remove photo"
             >
-              <Plus className="h-4 w-4" size={16} />
-              Add moment
+              <Trash2 className="h-4 w-4" size={16} />
             </button>
           )}
         </div>
-
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {displayItems.length === 0 ? (
-            <div className="col-span-full flex min-h-[60vh] items-center justify-center py-12">
-              <p className="text-center text-muted-foreground">
-                No moments yet. Add one above when logged in.
-              </p>
-            </div>
-          ) : null}
-          {displayItems.map((moment, index) => (
-            <div
-              key={moment.id}
-              className="group relative"
-              style={{
-                animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
-              }}
-            >
-              {canEdit && (
-                <div className="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setEditOpen({
-                        id: moment.id,
-                        title: moment.title,
-                        date: moment.date,
-                        description: moment.description,
-                        url: moment.url,
-                      })
-                    }
-                    className="rounded-full bg-card/90 p-2 shadow hover:bg-accent hover:text-accent-foreground"
-                    aria-label="Edit"
-                  >
-                    <PenLine className="h-4 w-4" size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteId(moment.id)}
-                    className="rounded-full bg-card/90 p-2 shadow hover:bg-red-600 hover:text-white"
-                    aria-label="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" size={16} />
-                  </button>
-                </div>
-              )}
-              <div className="glass overflow-hidden rounded-2xl border border-border transition-all duration-500 hover:scale-105 hover:shadow-2xl">
-                <div className="relative h-64 overflow-hidden">
-                  <ImageWithFallback
-                    src={moment.url}
-                    alt={moment.title}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-                </div>
-
-                <div className="p-6">
-                  <h3 className="mb-2 font-serif text-foreground transition-colors duration-700">
-                    {moment.title}
-                  </h3>
-                  <p className="mb-3 text-sm text-muted-foreground">
-                    {moment.date}
-                  </p>
-                  <p className="text-sm leading-relaxed text-card-foreground">
-                    {moment.description}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
+      ))}
+      {canEdit && canAddPhoto && (
+        <div className="flex shrink-0 items-center justify-center">
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="flex h-[200px] w-[140px] sm:h-[240px] sm:w-[168px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-accent hover:text-accent"
+            aria-label="Add photo"
+          >
+            <Plus className="mb-2 h-8 w-8" size={32} />
+            <span className="text-sm">Add</span>
+          </button>
         </div>
-      </div>
-
+      )}
       <Modal
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        title="Add moment"
+        open={adding}
+        onClose={() => setAdding(false)}
+        title="Add intro photo"
       >
         <form
           className="flex flex-col gap-4"
@@ -200,31 +119,11 @@ export function Moments() {
             required
             className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
           />
-          <input
-            type="text"
-            name="title"
-            placeholder="Title"
-            required
-            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
-          />
-          <input
-            type="text"
-            name="date"
-            placeholder="Date (e.g. Spring 2023)"
-            required
-            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
-          />
-          <textarea
-            name="description"
-            placeholder="Description"
-            rows={3}
-            required
-            className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
-          />
+          <input type="hidden" name="person" value={personSlug} />
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setAddOpen(false)}
+              onClick={() => setAdding(false)}
               className="rounded-lg border border-border px-4 py-2 text-sm"
             >
               Cancel
@@ -238,108 +137,225 @@ export function Moments() {
           </div>
         </form>
       </Modal>
+    </div>
+  );
+}
 
-      {editOpen && !editOpen.id.startsWith("fallback") && (
-        <Modal
-          open={!!editOpen}
-          onClose={() => setEditOpen(null)}
-          title="Edit moment"
+function SocialLinks({ social }: { social: HerAndISocial }) {
+  const links = [
+    {
+      key: "facebook" as const,
+      href: social.facebook || "#",
+      Icon: Facebook,
+    },
+    {
+      key: "instagram" as const,
+      href: social.instagram || "#",
+      Icon: Instagram,
+    },
+    {
+      key: "email" as const,
+      href: social.email ? `mailto:${social.email}` : "#",
+      Icon: Mail,
+    },
+    {
+      key: "linkedin" as const,
+      href: social.linkedin || "#",
+      Icon: LinkedIn,
+    },
+  ];
+
+  return (
+    <div className="flex flex-wrap justify-center gap-4">
+      {links.map(({ key, href, Icon }) => (
+        <a
+          key={key}
+          href={href}
+          target={href === "#" ? undefined : "_blank"}
+          rel={href === "#" ? undefined : "noopener noreferrer"}
+          className="rounded-full p-2 text-muted-foreground transition-colors hover:text-accent"
+          aria-label={key}
         >
-          <EditMomentForm
-            initialTitle={editOpen.title}
-            initialDate={editOpen.date}
-            initialDescription={editOpen.description}
-            onSave={(title, date, description) =>
-              handleEdit(editOpen.id, title, date, description)
-            }
-            onCancel={() => setEditOpen(null)}
+          <Icon className="h-6 w-6" size={24} />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function HerAndIIntroCard({
+  staticPerson,
+  intro,
+  photos,
+  canEdit,
+  onRefetch,
+}: {
+  staticPerson: HerAndIStaticPerson;
+  intro: string;
+  photos: HerAndIPhoto[];
+  canEdit: boolean;
+  onRefetch: () => void;
+}) {
+  const [editIntroOpen, setEditIntroOpen] = useState(false);
+  const [editIntroValue, setEditIntroValue] = useState(intro);
+
+  const displayPhotos =
+    photos.length > 0
+      ? photos.map((p) => ({ id: p.id, url: p.url }))
+      : staticPerson.fallbackPhotos.map((url) => ({ url }));
+  const displayIntro = intro || "Add a short introduction here.";
+
+  async function handleSaveIntro() {
+    const res = await fetch(
+      `/api/her-and-i/intro?person=${staticPerson.slug}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ intro: editIntroValue }),
+      }
+    );
+    if (res.ok) {
+      setEditIntroOpen(false);
+      onRefetch();
+    }
+  }
+
+  async function handleAddPhoto(formData: FormData) {
+    formData.set("person", staticPerson.slug);
+    await fetch("/api/her-and-i/photos", {
+      method: "POST",
+      body: formData,
+    });
+  }
+
+  async function handleRemovePhoto(id: string) {
+    await fetch(`/api/her-and-i/photos/${id}`, { method: "DELETE" });
+  }
+
+  return (
+    <div className="flex flex-col items-center text-center">
+      <IntroPhotoRow
+        photos={displayPhotos}
+        name={staticPerson.name}
+        personSlug={staticPerson.slug}
+        canEdit={canEdit}
+        canAddPhoto={photos.length < MAX_INTRO_PHOTOS}
+        onAdd={handleAddPhoto}
+        onRemove={handleRemovePhoto}
+        onRefetch={onRefetch}
+      />
+      <h3 className="mt-8 font-serif text-2xl text-foreground transition-colors duration-700 sm:text-3xl">
+        {staticPerson.name}
+      </h3>
+      <div className="relative mt-4 max-w-md">
+        <p className="text-muted-foreground leading-relaxed">
+          {displayIntro}
+        </p>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditIntroValue(intro);
+              setEditIntroOpen(true);
+            }}
+            className="mt-2 inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted"
+            aria-label="Edit introduction"
+          >
+            <PenLine className="h-4 w-4" size={16} />
+            Edit intro
+          </button>
+        )}
+      </div>
+      <div className="mt-6">
+        <SocialLinks social={staticPerson.social} />
+      </div>
+
+      <Modal
+        open={editIntroOpen}
+        onClose={() => setEditIntroOpen(false)}
+        title="Edit introduction"
+      >
+        <div className="flex flex-col gap-4">
+          <textarea
+            value={editIntroValue}
+            onChange={(e) => setEditIntroValue(e.target.value)}
+            placeholder="A short introduction..."
+            rows={4}
+            className="rounded border border-border bg-card px-3 py-2 text-foreground placeholder:text-muted-foreground"
           />
-        </Modal>
-      )}
-
-      {deleteId && (
-        <Modal
-          open={!!deleteId}
-          onClose={() => setDeleteId(null)}
-          title="Delete moment?"
-        >
-          <div className="flex justify-end gap-2">
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setDeleteId(null)}
+              onClick={() => setEditIntroOpen(false)}
               className="rounded-lg border border-border px-4 py-2 text-sm"
             >
               Cancel
             </button>
             <button
               type="button"
-              onClick={() => handleDelete(deleteId)}
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white"
+              onClick={handleSaveIntro}
+              className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
             >
-              Delete
+              Save
             </button>
           </div>
-        </Modal>
-      )}
-    </section>
+        </div>
+      </Modal>
+    </div>
   );
 }
 
-function EditMomentForm({
-  initialTitle,
-  initialDate,
-  initialDescription,
-  onSave,
-  onCancel,
-}: {
-  initialTitle: string;
-  initialDate: string;
-  initialDescription: string;
-  onSave: (title: string, date: string, description: string) => void;
-  onCancel: () => void;
-}) {
-  const [title, setTitle] = useState(initialTitle);
-  const [date, setDate] = useState(initialDate);
-  const [description, setDescription] = useState(initialDescription);
+export function Moments() {
+  const { data, loading, refetch } = useHerAndI();
+  const { isAuthenticated } = useAuth();
+
+  if (loading && !data) {
+    return (
+      <section id="her-and-i" className="relative min-h-screen px-6 py-24">
+        <div className="mx-auto max-w-7xl text-center text-muted-foreground">
+          Loading…
+        </div>
+      </section>
+    );
+  }
+
+  const hoangData = data?.hoang ?? { intro: "", photos: [] };
+  const maiData = data?.mai ?? { intro: "", photos: [] };
+  const hoangStatic = herAndIStaticConfig.find((p) => p.slug === "hoang")!;
+  const maiStatic = herAndIStaticConfig.find((p) => p.slug === "mai")!;
+
   return (
-    <div className="flex flex-col gap-4">
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Title"
-        className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
-      />
-      <input
-        type="text"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        placeholder="Date"
-        className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
-      />
-      <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Description"
-        rows={3}
-        className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground"
-      />
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg border border-border px-4 py-2 text-sm"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={() => onSave(title, date, description)}
-          className="rounded-lg bg-accent px-4 py-2 text-sm text-accent-foreground"
-        >
-          Save
-        </button>
+    <section id="her-and-i" className="relative min-h-screen px-6 py-24">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-16 text-center">
+          <h2
+            className="font-serif text-foreground transition-colors duration-700"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
+          >
+            Her and I
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            A little about us
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:gap-20">
+          <HerAndIIntroCard
+            staticPerson={hoangStatic}
+            intro={hoangData.intro}
+            photos={hoangData.photos}
+            canEdit={isAuthenticated}
+            onRefetch={refetch}
+          />
+          <HerAndIIntroCard
+            staticPerson={maiStatic}
+            intro={maiData.intro}
+            photos={maiData.photos}
+            canEdit={isAuthenticated}
+            onRefetch={refetch}
+          />
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

@@ -10,7 +10,7 @@ export function Hero() {
   const { theme } = useTheme();
   const parallaxOffset = scrollY * 0.5;
   const scrollToNext = () => {
-    document.getElementById("story")?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById("her-and-i")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -71,7 +71,7 @@ export function Hero() {
           style={{ transform: `translateY(${scrollY * 0.1}px)` }}
         >
           <span className="flex items-center gap-2 text-foreground">
-            See our moments
+            Meet us
             <Heart className="h-4 w-4 text-accent transition-transform group-hover:scale-110" size={16} fill="currentColor" />
           </span>
         </button>
