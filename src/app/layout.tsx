@@ -8,7 +8,7 @@ import { CursorHearts } from "@/components/cursor-hearts";
 import { ScrollProvider } from "@/components/scroll-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SecretModeProvider } from "@/contexts/secret-mode-context";
-import { SecretOverlay } from "@/components/secret-overlay";
+import { SecretModeRoot } from "@/components/secret-mode-root";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -58,7 +58,7 @@ export default function RootLayout({
                     <Navbar />
                     {children}
                   </div>
-                  <SecretOverlay />
+                  <SecretModeRoot />
                 </div>
                 </ScrollProvider>
               </SecretModeProvider>

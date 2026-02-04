@@ -5,7 +5,10 @@ import { Logo } from "@/components/logo";
 
 export function End() {
   return (
-    <section className="relative flex min-h-screen items-center justify-center px-6 py-24">
+    <section
+      id="end"
+      className="relative flex min-h-screen items-center justify-center px-6 py-24"
+    >
       <div className="absolute inset-0 opacity-30">
         <div className="absolute left-1/4 top-1/4 h-80 w-80 rounded-full blur-3xl bg-accent/30" />
         <div className="absolute bottom-1/4 right-1/4 h-80 w-80 rounded-full blur-3xl bg-muted/20" />

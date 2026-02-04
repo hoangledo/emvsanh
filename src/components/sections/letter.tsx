@@ -1,8 +1,11 @@
 "use client";
 
 import { PenLine } from "@/components/icons";
+import { useSecretMode } from "@/contexts/secret-mode-context";
 
 export function Letter() {
+  const { openValentineMode } = useSecretMode();
+
   return (
     <section
       id="letter"
@@ -55,11 +58,19 @@ export function Letter() {
             <p>
               Cảm ơn em vì hành trình này, và anh hy vọng mình sẽ cùng nhau bước tiếp thật lâu lâu nữa.
               Và dù có một điều này anh làm hơi muộn, nhưng anh không muốn bỏ lỡ và cũng không muốn tình yêu này thiếu nó. 
-              Anh hy vọng em có thể giúp anh nhấn Command + T.
+              Anh hy vọng em có thể giúp anh nhấn Command + U.
             </p>
 
             <p>Anh yêu em lắm lắm ❤️</p>
-            <p>Hoàng của em</p>
+            <p>
+              <button
+                type="button"
+                onClick={openValentineMode}
+                className="md:hidden inline-flex rounded-full border border-transparent bg-transparent px-3 py-1 text-accent underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+              >
+                Hoàng của em
+              </button>
+            </p>
 
             <p className="font-serif text-2xl text-accent">
               With all my heart ♡
