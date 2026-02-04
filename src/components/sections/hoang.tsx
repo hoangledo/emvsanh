@@ -244,7 +244,7 @@ export function Hoang() {
                         loading="lazy"
                       />
                       <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/30 to-transparent px-3 pb-2 pt-8">
-                        <p className="text-xs font-medium text-accent-foreground/90">
+                        <p className="text-xs font-medium text-white/90">
                           {photo.alt}
                         </p>
                       </div>
@@ -342,7 +342,7 @@ export function Hoang() {
                     loading="lazy"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/30 to-transparent px-4 pb-3 pt-10">
-                    <p className="text-sm font-medium text-accent-foreground/90">
+                    <p className="text-sm font-medium text-white/90">
                       {photo.alt}
                     </p>
                   </div>
@@ -387,11 +387,11 @@ export function Hoang() {
                     "var(--font-serif), system-ui, -apple-system, BlinkMacSystemFont",
                 }}
               >
-                <p className="text-base font-semibold text-foreground md:text-lg">
+                <p className="text-base font-semibold text-white md:text-lg">
                   {displayItems[activeIndex].alt}
                 </p>
                 {displayItems[activeIndex].note && (
-                  <p className="text-sm text-muted-foreground md:text-base">
+                  <p className="text-sm text-white/80 md:text-base">
                     {displayItems[activeIndex].note}
                   </p>
                 )}

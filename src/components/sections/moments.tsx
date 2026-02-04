@@ -65,8 +65,8 @@ function IntroPhotoRow({
           <div
             key={photo.id ?? `photo-${i}`}
             className={cn(
-              "absolute top-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300 ease-out",
-              "hover:z-30 hover:scale-110 hover:-translate-y-3 hover:drop-shadow-2xl",
+              "group absolute top-1/2 -translate-y-1/2 transition-all duration-300 ease-out",
+              "group-hover:z-30",
               FAN_ROTATIONS[posIdx],
               FAN_Z[posIdx]
             )}
@@ -85,7 +85,7 @@ function IntroPhotoRow({
                   setLightboxUrl(photo.url);
                 }
               }}
-              className="h-[280px] w-[200px] overflow-hidden rounded-2xl border border-border shadow-lg sm:h-[320px] sm:w-[228px]"
+              className="cursor-pointer h-[280px] w-[200px] overflow-hidden rounded-2xl border border-border shadow-lg transition-all duration-300 ease-out group-hover:scale-110 group-hover:-translate-y-3 group-hover:drop-shadow-2xl sm:h-[320px] sm:w-[228px]"
               aria-label={`View ${name} photo ${i + 1}`}
             >
               <ImageWithFallback

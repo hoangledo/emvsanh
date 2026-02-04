@@ -175,7 +175,7 @@ export function Young() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
           {displayItems.length === 0 ? (
             <p className="col-span-full py-12 text-center text-muted-foreground">
               No images yet. Add one above when logged in.
