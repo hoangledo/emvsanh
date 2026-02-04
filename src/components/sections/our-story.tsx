@@ -30,34 +30,31 @@ export function OurStory() {
             className="mb-8 text-center font-serif text-foreground transition-colors duration-700"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
-            Our Story
+            Câu chuyện của chúng mình
           </h2>
 
           <div className="space-y-6 text-card-foreground">
             <p className="text-lg leading-relaxed">
-              They say that when you meet the right person, you just know. For
-              us, it wasn&apos;t love at first sight—it was something deeper. It
-              was recognition, like our souls had been searching for each other
-              across lifetimes.
+              Hôm nay là ngày 4 tháng 2 năm 2026. Nhưng anh muốn chúng mình quay ngược thời gian chút, và cùng trở lại tháng 9 năm 2023.
+              Khi mà em chủ động nhắn tin kết bạn với anh :)))
+
             </p>
 
             <p className="text-lg leading-relaxed">
-              From our first conversation that lasted until sunrise, to the
-              comfortable silences we now share, every moment with you has been
-              a treasure. You&apos;ve shown me what it means to be truly seen,
-              truly loved, truly home.
+              Đây là lần đầu tiên anh nhắn tin với em, và cũng là lần đầu có một người làm anh muốn nhắn tin và call lâu đến thế.
+              Hihi, mặc dù lúc call hay nhắn tin thì anh có hơi hãm l, nhưng mà em vẫn luôn ở đây, kiên nhẫn và trò chuyện với anh.
             </p>
 
             <p className="text-lg leading-relaxed">
-              Together, we&apos;ve laughed until our sides hurt, held each other
-              through tears, danced in the kitchen, and built a life filled with
-              warmth and wonder. You are my favorite hello and my hardest
-              goodbye.
+              Chuyện thì còn dài và nhiều tình tiết lắm nma anh phải ưu tiên các phần khác cho kịp công đoạn nên là tạm thế đã nha, heheeee.
+            </p>
+
+            <p className="text-lg leading-relaxed">
+              Anyways, cảm ơn em rất nhiều vì đã đồng hành cùng anh trong suốt thời gian qua.
             </p>
 
             <p className="pt-4 text-center font-serif italic">
-              This is our story—and it&apos;s still being written, one beautiful
-              day at a time.
+              Anh yêu em nhiều lắm lắm ❤️
             </p>
           </div>
         </div>

@@ -52,16 +52,16 @@ export function Hero() {
             transform: `translateY(${scrollY * 0.2}px)`,
           }}
         >
-          Every Love Story
+          Our Love Story
           <br />
-          <span className="text-accent">Is Beautiful</span>
+          <span className="text-accent">Hoàng & Mai</span>
         </h1>
 
         <p
           className="mx-auto mb-12 max-w-2xl text-lg text-muted-foreground md:text-xl transition-colors duration-700"
           style={{ transform: `translateY(${scrollY * 0.15}px)` }}
         >
-          But ours is my favorite
+          Special and Beautiful 💖
         </p>
 
         <button

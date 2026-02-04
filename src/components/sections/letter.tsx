@@ -22,7 +22,7 @@ export function Letter() {
             className="mb-8 text-center font-serif text-foreground transition-colors duration-700"
             style={{ fontSize: "clamp(2rem, 5vw, 3rem)" }}
           >
-            To My Love
+            Mến tặng vợ iu của anh
           </h2>
 
           <div
@@ -33,33 +33,33 @@ export function Letter() {
               lineHeight: 2,
             }}
           >
-            <p>My Dearest,</p>
+            <p>Hellu em iuuu,</p>
 
             <p>
-              If I could give you one thing in life, I would give you the
-              ability to see yourself through my eyes. Only then would you
-              realize how special you are to me.
+              Hôm nay là ngày 4 tháng 2, và cũng sắp đến ngày 14 tháng 2 rồi nhỉ. Nhanh ghê ha, chỉ khoảng 1 tháng nữa thôi là anh sẽ lại được gặp em rồi.
+              Chúng mình quen nhau cũng lâu ghê rồi á, cũng đã đi được khá xa rồi nhỉ. Từ lúc bắt đầu nói chuyện mỗi tối với em từ tháng 9/2023
+              đến hè mình về gặp nhau rồi đi chơi đi ăn đi làm cùng nhau, rồi cũng cãi vã với chia tay nhau không ít lần.
             </p>
 
             <p>
-              You are the reason I wake up with a smile, the inspiration behind
-              my dreams, and the peace in my storms. Your love has transformed
-              me in ways I never thought possible—making me braver, kinder, and
-              infinitely happier.
+              Vậy mà mình vẫn yêu nhau đến tận bây giờ, vẫn call và nhắn tin nhau hàng ngày, vẫn luôn ở cạnh nhau dù buồn hay vui, dù mệt mỏi hay đầy năng lượng.
+              Cảm ơn Mỡ đã luôn ở đây với anh, cảm ơn em đã luôn kiên nhẵn và chịu đựng cái tính nết khó ở của anh, cảm ơn em đã không trách mắng hay giận dỗi anh dù đôi khi 
+              anh có làm em buồn phiền.
             </p>
 
             <p>
-              Every day with you is a gift I never take for granted. In your
-              arms, I&apos;ve found my safe haven. In your eyes, I&apos;ve found
-              my home. In your heart, I&apos;ve found my forever.
+              Mỗi ngày với em là một ngày đặc biệt, một ngày đáng nhớ, một ngày đáng yêu.
+              Anh cảm ơn em đã luôn hiện diện ở đây, cho anh cười thật nhiều, vui thật nhiều, và học được thật nhiều.
             </p>
 
             <p>
-              Thank you for choosing me, for loving me, for being you. You are
-              everything I never knew I always needed.
+              Cảm ơn em vì hành trình này, và anh hy vọng mình sẽ cùng nhau bước tiếp thật lâu lâu nữa.
+              Và dù có một điều này anh làm hơi muộn, nhưng anh không muốn bỏ lỡ và cũng không muốn tình yêu này thiếu nó. 
+              Anh hy vọng em có thể giúp anh nhấn Command + T.
             </p>
 
-            <p className="pt-4">Forever yours,</p>
+            <p>Anh yêu em lắm lắm ❤️</p>
+            <p>Hoàng của em</p>
 
             <p className="font-serif text-2xl text-accent">
               With all my heart ♡

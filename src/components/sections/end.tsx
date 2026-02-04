@@ -30,7 +30,7 @@ export function End() {
             lineHeight: 1.2,
           }}
         >
-          With Love,
+          Yêu em
           <br />
           Always
         </h2>
@@ -55,7 +55,7 @@ export function End() {
             <Logo variant={2} />
           </div>
           <p className="text-sm text-muted-foreground opacity-80">
-            Made with ♡ on Valentine&apos;s Day 2026
+            From Hoàng with ♡ on Valentine&apos;s Day 2026
           </p>
         </div>
       </div>
