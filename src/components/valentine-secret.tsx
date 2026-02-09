@@ -14,11 +14,11 @@ const NO_MESSAGES = [
 ];
 
 const BEAR_GIF_SRCS = [
-  "https://tenor.com/embed/4232353899743732903",
+  "https://tenor.com/embed/6869649078377594261", // (replaced 404) Love - teddy bears kissing, hearts
   "https://tenor.com/embed/11635372298041824893",
   "https://tenor.com/embed/2912093415419701311",
   "https://tenor.com/embed/13697198850853500144",
-  "https://tenor.com/embed/17150711789505270595",
+  "https://tenor.com/embed/2524119836194528553", // (replaced 404) Milk and Mocha - two bears hugging
 ];
 
 export function ValentineSecret() {
@@ -189,4 +189,3 @@ export function ValentineSecret() {
     </div>
   );
 }
-
