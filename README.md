@@ -52,10 +52,3 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Edit `src/app/page.tsx` and section components to add your content and images (e.g. under `public/` or `public/images/`).
-
-## Build
-
-```bash
-npm run build
-npm start
-```
