@@ -348,6 +348,20 @@ body {
   }
 }
 
+/* Equalizer bar animations (music picker active song indicator) */
+@keyframes equalizerBar1 {
+  from { transform: scaleY(0.3); }
+  to   { transform: scaleY(1); }
+}
+@keyframes equalizerBar2 {
+  from { transform: scaleY(0.6); }
+  to   { transform: scaleY(0.4); }
+}
+@keyframes equalizerBar3 {
+  from { transform: scaleY(0.2); }
+  to   { transform: scaleY(0.9); }
+}
+
 /* Hide horizontal scrollbar while keeping scroll (Food & Funny moments carousels) */
 .scrollbar-hide {
   -ms-overflow-style: none !important;

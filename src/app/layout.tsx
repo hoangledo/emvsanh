@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Dancing_Script, Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import Script from "next/script";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AuthGate } from "@/components/auth-gate";
 import { Navbar } from "@/components/navbar";
@@ -9,6 +10,9 @@ import { ScrollProvider } from "@/components/scroll-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SecretModeProvider } from "@/contexts/secret-mode-context";
 import { SecretModeRoot } from "@/components/secret-mode-root";
+import { MusicProvider } from "@/contexts/music-context";
+import { MusicPlayer } from "@/components/music-player";
+import { MusicPicker } from "@/components/music-picker";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,21 +54,31 @@ export default function RootLayout({
           <AuthGate>
             <ThemeProvider>
               <SecretModeProvider>
-                <ScrollProvider>
-                <div className="page-gradient relative min-h-screen overflow-x-hidden overflow-y-auto">
-                  <HeartsBackground />
-                  <CursorHearts />
-                  <div className="relative z-10">
-                    <Navbar />
-                    {children}
-                  </div>
-                  <SecretModeRoot />
-                </div>
-                </ScrollProvider>
+                <MusicProvider>
+                  <ScrollProvider>
+                    <div className="page-gradient relative min-h-screen overflow-x-hidden overflow-y-auto">
+                      <HeartsBackground />
+                      <CursorHearts />
+                      <div className="relative z-10">
+                        <Navbar />
+                        {children}
+                      </div>
+                      <SecretModeRoot />
+                      <MusicPlayer />
+                      <MusicPicker />
+                    </div>
+                  </ScrollProvider>
+                </MusicProvider>
               </SecretModeProvider>
             </ThemeProvider>
           </AuthGate>
         </AuthProvider>
+
+        {/* SoundCloud Widget API SDK — loaded after page is interactive */}
+        <Script
+          src="https://w.soundcloud.com/player/api.js"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );
