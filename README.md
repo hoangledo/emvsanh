@@ -1,13 +1,6 @@
-# Mai Nguyen
+# EmvsAnh
 
-A Valentine’s Day parallax scrolling website built with Next.js. It’s a single-page site for sharing photos and moments, with a glassmorphism-style UI and smooth scrolling between sections.
-
-## App content
-
-- **Single-page layout** – One long page with anchor-linked sections.
-- **Sections** – Home, Our Story, Moments, Gallery, Letter, and End. Each section is a full-width block you can fill with text, images, and cards.
-- **Glassmorphism UI** – Frosted-glass navbar and optional glass cards for a modern look.
-- **Light / dark theme** – Toggle in the navbar; preference is saved in `localStorage`.
+A gift and album webapp built for me and my girlfriend.
 
 ## Color theme
 
