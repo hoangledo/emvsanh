@@ -30,25 +30,3 @@ Semantic tokens (`--background`, `--foreground`, `--primary`, `--accent`, `--car
 | End         | `#end`        | Closing (e.g. “With love, always”)|
 
 The navbar links to these anchors; `html` has `scroll-behavior: smooth` for smooth scrolling.
-
-## Tech stack
-
-- **Next.js 16** (App Router), **TypeScript**, **Tailwind CSS v4**
-- **Components** – Custom Button, Card (default + glass), Navbar (desktop + mobile menu), Section, ThemeProvider
-- **Utils** – `cn()` in `src/lib/utils.ts` (clsx + tailwind-merge)
-
-## Getting started
-
-```bash
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). Edit `src/app/page.tsx` and section components to add your content and images (e.g. under `public/` or `public/images/`).
-
-## Build
-
-```bash
-npm run build
-npm start
-```
