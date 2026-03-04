@@ -104,7 +104,7 @@ export function LoginPage() {
                 style={{ backgroundColor: t.color }}
               >
                 {theme === t.id && (
-                  <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white ring-offset-2" style={{ ringOffsetColor: t.color }} />
+                  <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white ring-offset-2" />
                 )}
               </button>
             ))}
