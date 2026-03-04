@@ -4,7 +4,9 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 
 const STORAGE_KEY = "valentine-theme";
 
-type Theme = "light" | "dark";
+type Theme = "light" | "dark" | "lavender" | "peach";
+
+const ALL_THEMES: Theme[] = ["light", "dark", "lavender", "peach"];
 
 type ThemeContextValue = {
   theme: Theme;
@@ -17,7 +19,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "light";
   const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-  if (stored === "light" || stored === "dark") return stored;
+  if (stored && ALL_THEMES.includes(stored)) return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
@@ -31,19 +33,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initial = getInitialTheme();
     setThemeState(initial);
-    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.remove(...ALL_THEMES);
     document.documentElement.classList.add(initial);
   }, []);
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
-    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.remove(...ALL_THEMES);
     document.documentElement.classList.add(next);
     localStorage.setItem(STORAGE_KEY, next);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(theme === "light" ? "dark" : "light");
+    const idx = ALL_THEMES.indexOf(theme);
+    setTheme(ALL_THEMES[(idx + 1) % ALL_THEMES.length]);
   }, [theme, setTheme]);
 
   const value: ThemeContextValue = {
