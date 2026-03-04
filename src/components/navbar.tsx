@@ -1,7 +1,14 @@
 "use client";
 
 import { Logo } from "@/components/logo";
-import { Menu, Moon, Settings, Sun, X } from "@/components/icons";
+import { Menu, Settings, X } from "@/components/icons";
+
+const COLOR_THEMES = [
+  { id: "light" as const, color: "#ff4d6d", label: "Pink" },
+  { id: "dark" as const, color: "#800f2f", label: "Red" },
+  { id: "lavender" as const, color: "#7c3aed", label: "Lavender" },
+  { id: "peach" as const, color: "#ea580c", label: "Peach" },
+];
 import Link from "next/link";
 import { useScroll } from "@/components/scroll-provider";
 import { useTheme } from "@/components/theme-provider";
@@ -35,7 +42,7 @@ function useIsMobile() {
 }
 
 export function Navbar() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { scrollY } = useScroll();
   const { isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -153,21 +160,28 @@ export function Navbar() {
                 className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] py-1 shadow-lg backdrop-blur-md"
                 role="menu"
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    toggleTheme();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted/50 hover:text-accent"
-                  role="menuitem"
+                <div
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground"
+                  role="group"
+                  aria-label="Color theme"
                 >
-                  {theme === "dark" ? (
-                    <Sun className="h-4 w-4" size={16} />
-                  ) : (
-                    <Moon className="h-4 w-4" size={16} />
-                  )}
-                  <span>Color mode</span>
-                </button>
+                  <span className="mr-1">Theme</span>
+                  {COLOR_THEMES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTheme(t.id)}
+                      title={t.label}
+                      aria-label={`${t.label} theme`}
+                      className="relative h-5 w-5 rounded-full transition-transform hover:scale-110 focus:outline-none"
+                      style={{ backgroundColor: t.color }}
+                    >
+                      {theme === t.id && (
+                        <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white ring-offset-1" />
+                      )}
+                    </button>
+                  ))}
+                </div>
                 {isAuthenticated && (
                   <>
                     <button
@@ -217,19 +231,28 @@ export function Navbar() {
                 className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] py-1 shadow-lg backdrop-blur-md"
                 role="menu"
               >
-                <button
-                  type="button"
-                  onClick={() => toggleTheme()}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-muted/50 hover:text-accent"
-                  role="menuitem"
+                <div
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground"
+                  role="group"
+                  aria-label="Color theme"
                 >
-                  {theme === "dark" ? (
-                    <Sun className="h-4 w-4" size={16} />
-                  ) : (
-                    <Moon className="h-4 w-4" size={16} />
-                  )}
-                  <span>Color mode</span>
-                </button>
+                  <span className="mr-1">Theme</span>
+                  {COLOR_THEMES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTheme(t.id)}
+                      title={t.label}
+                      aria-label={`${t.label} theme`}
+                      className="relative h-5 w-5 rounded-full transition-transform hover:scale-110 focus:outline-none"
+                      style={{ backgroundColor: t.color }}
+                    >
+                      {theme === t.id && (
+                        <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white ring-offset-1" />
+                      )}
+                    </button>
+                  ))}
+                </div>
                 {isAuthenticated && (
                   <>
                     <button

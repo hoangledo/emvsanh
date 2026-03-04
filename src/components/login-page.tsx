@@ -2,11 +2,20 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { useTheme } from "@/components/theme-provider";
 import { Heart } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
 
+const COLOR_THEMES = [
+  { id: "light" as const, color: "#ff4d6d", label: "Pink" },
+  { id: "dark" as const, color: "#800f2f", label: "Red" },
+  { id: "lavender" as const, color: "#7c3aed", label: "Lavender" },
+  { id: "peach" as const, color: "#ea580c", label: "Peach" },
+];
+
 export function LoginPage() {
   const { login } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -83,6 +92,23 @@ export function LoginPage() {
               {error}
             </p>
           )}
+          <div className="flex items-center justify-center gap-3 py-1">
+            {COLOR_THEMES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTheme(t.id)}
+                title={t.label}
+                aria-label={`${t.label} theme`}
+                className="relative h-6 w-6 rounded-full transition-transform hover:scale-110 focus:outline-none"
+                style={{ backgroundColor: t.color }}
+              >
+                {theme === t.id && (
+                  <span className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white ring-offset-2" style={{ ringOffsetColor: t.color }} />
+                )}
+              </button>
+            ))}
+          </div>
           <button
             type="submit"
             disabled={loading}
