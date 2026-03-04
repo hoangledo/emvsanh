@@ -51,9 +51,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${dancingScript.variable} antialiased`}
       >
         <AuthProvider>
+          <ThemeProvider>
           <AuthGate>
-            <ThemeProvider>
-              <SecretModeProvider>
+            <SecretModeProvider>
                 <MusicProvider>
                   <ScrollProvider>
                     <div className="page-gradient relative min-h-screen overflow-x-hidden overflow-y-auto">
@@ -70,8 +70,8 @@ export default function RootLayout({
                   </ScrollProvider>
                 </MusicProvider>
               </SecretModeProvider>
-            </ThemeProvider>
           </AuthGate>
+          </ThemeProvider>
         </AuthProvider>
 
         {/* SoundCloud Widget API SDK — loaded after page is interactive */}
